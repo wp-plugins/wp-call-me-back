@@ -5,7 +5,7 @@ error_reporting(0);
  * Plugin Name: Call me back widget
  * Plugin URI: http://pigeonhut.com
  * Description: Request call me back widget by PigeonHUT
- * Version: 1.0
+ * Version: 1.11
  * Author: Jody Nesbitt (WebPlugins)
  * Author URI: http://webplugins.co.uk
  *
@@ -117,6 +117,40 @@ function callSettings() {
     if (isset($get_option_details['secret']) && $get_option_details['secret'] != '')
         $secret = $get_option_details['secret'];
     ?>
+
+    <style>        
+        ﻿.alert-box {
+            color:#555;
+            border-radius:10px;
+            font-family:Tahoma,Geneva,Arial,sans-serif;font-size:11px;
+            padding:10px 36px;
+            margin:10px;
+        }
+        .alert-box span {
+            font-weight:bold;
+            text-transform:uppercase;
+        }
+        .errormes {
+            background:#ffecec no-repeat 10px 50%;
+            border:1px solid #f5aca6;
+            padding: 10px;
+        }
+        .success {
+            background:#e9ffd9 no-repeat 10px 50%;
+            border:1px solid #a6ca8a;
+            padding: 10px;
+        }
+        .warning {
+            background:#fff8c4 no-repeat 10px 50%;
+            border:1px solid #f2c779;
+            padding: 10px;
+        }
+        .notice {
+            background:#e3f7fc  no-repeat 10px 50%;
+            border:1px solid #8ed9f6;
+            padding: 10px;
+        }
+    </style>
     <div class="wrap">  
         <h1> <?php echo _e('Settings and Options', 'cqp'); ?></h2>
             <?php _statusMessage('Settings and Options'); ?>
@@ -346,10 +380,15 @@ class wpgcallmeback_Widget extends WP_Widget {
                         echo('Sorry there wa error processing your request. please try again');
                     }
                 } else {
-                    echo 'Please enter correct captcha code';                    
+                    echo 'Please enter correct captcha code';
                 }
             } else {
                 ?>
+                <style>
+                    .g-recaptcha div div {width:100% !important}
+                    .g-recaptcha div div iframe{width:100% !important}
+                    .g-recaptcha div div iframe html body .rc-anchor .rc-anchor-content{width:47px !important;}
+                </style>
                 <div class="wpgcallbackform">
 
                     <script type="text/javascript"
@@ -378,7 +417,7 @@ class wpgcallmeback_Widget extends WP_Widget {
                                     <option value="Afternoon">Afternoon</option>
                                     <option value="Evening">Evening</option>
                                 </select>
-                                <div class="g-recaptcha" style="width:200px; display: block;" data-theme="light" data-type="image" data-sitekey="<?php echo $get_option_details['site_key']; ?>"></div>                                                                                
+                                <div class="g-recaptcha" style="width:100%; display: block;" data-theme="light" data-type="image" data-sitekey="<?php echo $get_option_details['site_key']; ?>"></div>                                                                                
                                 <input name="submit" type="submit" style="background-color: <?php echo $get_option_details['picker3']; ?>" class="callmeback" value="Call me back" />
                             </form></div>
                     </div>
@@ -462,40 +501,3 @@ class wpgcallmeback_Widget extends WP_Widget {
 
 }
 ?>
-<style>
-    .g-recaptcha div div {width:100% !important}
-    .g-recaptcha div div iframe{width:85% !important}
-    .g-recaptcha div div iframe html body .rc-anchor .rc-anchor-content{width:47px !important;}
-
-﻿.alert-box {
-    color:#555;
-    border-radius:10px;
-    font-family:Tahoma,Geneva,Arial,sans-serif;font-size:11px;
-    padding:10px 36px;
-    margin:10px;
-}
-.alert-box span {
-    font-weight:bold;
-    text-transform:uppercase;
-}
-.errormes {
-    background:#ffecec no-repeat 10px 50%;
-    border:1px solid #f5aca6;
-    padding: 10px;
-}
-.success {
-    background:#e9ffd9 no-repeat 10px 50%;
-    border:1px solid #a6ca8a;
-    padding: 10px;
-}
-.warning {
-    background:#fff8c4 no-repeat 10px 50%;
-    border:1px solid #f2c779;
-    padding: 10px;
-}
-.notice {
-    background:#e3f7fc  no-repeat 10px 50%;
-    border:1px solid #8ed9f6;
-    padding: 10px;
-}
-</style>

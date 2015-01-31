@@ -1,6 +1,6 @@
 /*.wpgcallbackform { background:url(purple-callmebackimg.png) no-repeat; width:228px; padding:25px 15px 15px 15px;}*/
 .wpgcallmeback {width: 100%}
-.wpgcallbackform {width:228px;padding:25px 15px 15px 15px;}
+.wpgcallbackform {width:100%;padding:25px 15px 15px 15px;}
 
 .wpgcallbackform .wpgtitle { color:#FFF; font-size:18px; font-weight:bold; display:block; line-height:18px;}
 
