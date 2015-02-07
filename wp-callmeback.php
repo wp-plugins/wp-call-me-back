@@ -398,7 +398,7 @@ class wpgcallmeback_Widget extends WP_Widget {
                         <div class="wpgtitle"><?php echo $title; ?></div>
                         <div class="wpgslogan"><?php echo $wpgslogan; ?></div>
                         <div class="wpginfo"><?php echo $wpginfo; ?></div>
-                        <div class="wpgform"><form action="<?php echo htmlentities($_SERVER['PHP_SELF']); ?>" method="post" enctype="application/x-www-form-urlencoded" name="callbackwidget">
+                        <div class="wpgform"><form action="#" method="post" enctype="application/x-www-form-urlencoded" name="callbackwidget">
                                 <input name="rname" type="text" value="Name"  onclick="this.value = '';" onblur="if (this.value == '') {
                                                             this.value = 'Name'
                                                         }" size="17" />
