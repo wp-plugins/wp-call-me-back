@@ -60,7 +60,7 @@ class Wpg_Callback_List_Table extends WP_List_Table_Copy {
     }
 
     function no_items() {
-        _e('No Tamplate Layouts found, dude.');
+        _e('No Requests found, dude.');
     }
 
     function column_default($item, $column_name) {
