@@ -5,7 +5,7 @@ error_reporting(0);
  * Plugin Name: Call me back widget
  * Plugin URI: http://pigeonhut.com
  * Description: Request call me back widget by PigeonHUT
- * Version: 1.11
+ * Version: 1.12
  * Author: Jody Nesbitt (WebPlugins)
  * Author URI: http://webplugins.co.uk
  *
