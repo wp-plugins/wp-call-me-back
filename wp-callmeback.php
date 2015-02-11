@@ -1,11 +1,11 @@
 <?php
 error_reporting(0);
-
+ob_start();
 /**
  * Plugin Name: Call me back widget
  * Plugin URI: http://pigeonhut.com
  * Description: Request call me back widget by PigeonHUT
- * Version: 1.12
+ * Version: 1.13
  * Author: Jody Nesbitt (WebPlugins)
  * Author URI: http://webplugins.co.uk
  *
@@ -15,6 +15,9 @@ error_reporting(0);
  */
 if (!class_exists('Wpg_Callback_List_Table')) {
     require_once( plugin_dir_path(__FILE__) . 'class/class-wpg-callback-list-table.php' );
+}
+if (!class_exists('Wpg_Besttime_List_Table')) {
+    require_once( plugin_dir_path(__FILE__) . 'class/class-wpg-besttime-list-table.php' );
 }
 if (!class_exists('ReCaptcha')) {
     require_once( plugin_dir_path(__FILE__) . 'class/recaptchalib.php' );
@@ -45,8 +48,17 @@ function initialize_table() {
             `dateCreated` timestamp NOT NULL,
             PRIMARY KEY (`id`))ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1;";
     $wpdb->query($sql);
+    $sql = "CREATE TABLE IF NOT EXISTS `" . $wpdb->prefix . "call_back_best_time" . "` (
+            `id` bigint(20) unsigned NOT NULL auto_increment,
+            `best_time` varchar(255) default NULL,                     
+            `dateCreated` timestamp NOT NULL,
+            PRIMARY KEY (`id`))ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1;";
+    $wpdb->query($sql);
     add_menu_page(__('Request a call back', 'rcb'), __('Request a call back', 'rcb'), 'manage_options', 'request-call-back', 'callRequestCallBack', '');
     add_submenu_page('request-call-back', __('Settings and options', 'rcb'), __('Settings and options', 'rcb'), 'manage_options', 'settings-options', 'callSettings');
+    add_submenu_page('request-call-back', __('Best time', 'rcb'), __('Best time', 'rcb'), 'manage_options', 'list-best-time', 'listBestTime');
+    add_submenu_page('', __('Add Best time', 'rcb'), __('Add Best time', 'rcb'), 'manage_options', 'rcb-best-time', 'rcbBestTime');
+    add_submenu_page('', __('Delete Best time', 'rcb'), __('Delete Best time', 'rcb'), 'manage_options', 'delete-best-time', 'rcbDeleteBestTime');
 }
 
 function wpgcallmeback_style() {
@@ -64,11 +76,217 @@ add_action('admin_menu', 'initialize_table');
 add_action('wp_enqueue_scripts', 'wpgcallmeback_style');
 add_action('admin_enqueue_scripts', 'adminCallBackScripts');
 add_action('admin_post_submit-callback-settings-form', 'saveCallbackSettings');
+add_action('admin_post_submit-besttime-form', 'saveBestTime');
 
 function adminCallBackScripts() {
     wp_register_style('wpgcallmeback-style', plugins_url('css/colpick.css', __FILE__), array(), '20120208', 'all');
     wp_enqueue_script('wpgcallmeback-style', plugins_url('js/colpick.js', __FILE__), array(), '1.0.0', true);
     wp_enqueue_style('wpgcallmeback-style');
+}
+
+function rcbDeleteBestTime() {
+    session_start();
+    global $wpdb;
+    $wpdb->delete($wpdb->prefix . "call_back_best_time", array('id' => $_GET['best_time']));
+    if ($wpdb->rows_affected > 0) {
+        $_SESSION['area_status'] = 'deletesuccess';
+    } else {
+        $_SESSION['area_status'] = 'deletefailed';
+    }
+    if ($_GET['paged'] != '') {
+        wp_redirect(admin_url('admin.php?page=list-best-time&paged="' . $_GET['paged'] . '"'));
+        exit;
+    }
+    wp_redirect(admin_url('admin.php?page=list-best-time'));
+}
+
+function listBestTime() {
+    session_start();
+    global $wpdb;
+    ?>
+    <style>        
+        ﻿.alert-box {
+            color:#555;
+            border-radius:10px;
+            font-family:Tahoma,Geneva,Arial,sans-serif;font-size:11px;
+            padding:10px 36px;
+            margin:10px;
+        }
+        .alert-box span {
+            font-weight:bold;
+            text-transform:uppercase;
+        }
+        .errormes {
+            background:#ffecec no-repeat 10px 50%;
+            border:1px solid #f5aca6;
+            padding: 10px;
+        }
+        .success {
+            background:#e9ffd9 no-repeat 10px 50%;
+            border:1px solid #a6ca8a;
+            padding: 10px;
+        }
+        .warning {
+            background:#fff8c4 no-repeat 10px 50%;
+            border:1px solid #f2c779;
+            padding: 10px;
+        }
+        .notice {
+            background:#e3f7fc  no-repeat 10px 50%;
+            border:1px solid #8ed9f6;
+            padding: 10px;
+        }
+    </style>
+    <div class="wrap">                               
+        <h2><?php _e('Best time', 'wpre'); ?> <a class="add-new-h2" href="<?php echo admin_url() ?>admin.php?page=rcb-best-time">Add New</a></h2> 
+        <?php _statusMessage('Best time'); ?>
+        <div id="poststuff" class="metabox-holder ppw-settings">
+            <div class="postbox" id="ppw_global_postbox">                           
+                <div class="inside">  
+                    <form id="size" name="best_time" method="post" onsubmit="return submitcount('size');" action="">
+                        <?php
+                        if ($_REQUEST['action'] == 'delete') {
+                            $del = $_REQUEST['best_time'];
+                            if ($del != '') {
+                                $idsToDelete = implode($del, ',');
+                                global $wpdb;
+                                $wpdb->query($wpdb->prepare("DELETE FROM " . $wpdb->prefix . "call_back_best_time WHERE id IN ($idsToDelete)"));
+                                if ($wpdb->rows_affected > 0) {
+                                    $_SESSION['area_status'] = 'deletesuccess';
+                                    wp_redirect(admin_url('admin.php?page=list-best-time&paged="' . $_GET['paged'] . '"'));
+                                    exit;
+                                }
+                            } else {
+                                $_SESSION['area_status'] = 'deletefailed';
+                                if ($_GET['paged'] != '') {
+                                    wp_redirect(admin_url('admin.php?page=list-best-time&paged="' . $_GET['paged'] . '"'));
+                                } else {
+                                    wp_redirect(admin_url('admin.php?page=list-best-time'));
+                                }
+                            }
+                        }
+
+                        $myListTable = new Wpg_Besttime_List_Table();
+                        $myListTable->prepare_items();
+                        $myListTable->display();
+                        ?>
+                    </form>      
+                </div>
+            </div>           
+        </div>
+    </div><?php
+}
+
+function rcbBestTime() {
+    session_start();
+    global $wpdb;
+    if ($_REQUEST['action'] == 'edit' && $_REQUEST['best_time'] != '') {
+        $getBestTime = '';
+        $getDetails = $wpdb->get_row('SELECT * FROM  ' . $wpdb->prefix . 'call_back_best_time WHERE id=' . $_REQUEST['best_time']);
+        if ($getDetails != NULL) {
+            $getId = $getDetails->id;
+            $getBestTime = $getDetails->best_time;
+        }
+    }
+    $getAllDetails = $wpdb->get_results('SELECT id,manufacturer FROM  ' . $wpdb->prefix . 'call_back_best_time');
+    ?>
+    <style>        
+        ﻿.alert-box {
+            color:#555;
+            border-radius:10px;
+            font-family:Tahoma,Geneva,Arial,sans-serif;font-size:11px;
+            padding:10px 36px;
+            margin:10px;
+        }
+        .alert-box span {
+            font-weight:bold;
+            text-transform:uppercase;
+        }
+        .errormes {
+            background:#ffecec no-repeat 10px 50%;
+            border:1px solid #f5aca6;
+            padding: 10px;
+        }
+        .success {
+            background:#e9ffd9 no-repeat 10px 50%;
+            border:1px solid #a6ca8a;
+            padding: 10px;
+        }
+        .warning {
+            background:#fff8c4 no-repeat 10px 50%;
+            border:1px solid #f2c779;
+            padding: 10px;
+        }
+        .notice {
+            background:#e3f7fc  no-repeat 10px 50%;
+            border:1px solid #8ed9f6;
+            padding: 10px;
+        }
+    </style>
+    <div class="wrap">  
+        <h1> <?php echo _e('Add Best Time', 'cqp'); ?></h1>       
+        <div id="poststuff" class="metabox-holder ppw-settings">
+            <div class="postbox" id="ppw_global_postbox">                 
+                <div class="inside">                               
+                    <div>
+                        <form id="callback_settings" method="post" action="<?php echo get_admin_url() ?>admin-post.php" onsubmit="return validate();">  
+                            <fieldset>
+                                <input type='hidden' name='action' value='submit-besttime-form' />
+                                <input type='hidden' name='id' value='<?php echo $getId ?>' />
+                                <input type='hidden' name='paged' value='<?php echo $_GET['paged']; ?>' />
+                                <table width="600px" cellpadding="0" cellspacing="0" class="form-table">
+                                    <tr>
+                                        <td>Best time </td>
+                                        <td><input type="text" id="best_time" name="best_time" value="<?php echo $getBestTime; ?>"></input></td>
+                                    </tr>                                        
+                                    <tr>                                
+                                        <td colspan="2"><input class="button-primary" type="submit" id="submit_form_settings" name="submit_form_settings"></input></td>
+                                    </tr>
+                                </table>
+                            </fieldset>
+                        </form>
+                    </div>                         
+                </div>
+            </div>           
+        </div>
+    </div>
+    <script>
+        jQuery(document).ready(function () {
+            jQuery('#submit_form_settings').click(function () {
+                if (jQuery('#best_time').val() == '') {
+                    alert('Please enter best time');
+                    return false;
+                } else {
+                    return true;
+                }
+            });
+        });
+    </script>
+    <?php
+}
+
+function saveBestTime() {
+    session_start();
+    global $wpdb;
+    if (isset($_POST['submit_form_settings'])) {
+        $insertArray['best_time'] = $_POST['best_time'];
+        if ($_POST['id'] != '') {
+            $wpdb->update($wpdb->prefix . "call_back_best_time", $insertArray, array('id' => $_POST['id']), array('%s', '%s'), array('%d'));
+            $_SESSION['area_status'] = 'updated';
+        } else {
+            $wpdb->insert($wpdb->prefix . "call_back_best_time", $insertArray, array('%s', '%s'));
+            if ($wpdb->insert_id > 0) {
+                $_SESSION['area_status'] = 'success';
+            } else {
+                $_SESSION['area_status'] = 'failed';
+            }
+        }
+        if ($_POST['paged'] != '') {
+            wp_redirect(admin_url('admin.php?page=list-best-time&paged="' . $_POST['paged'] . '"'));
+            exit;
+        }
+        wp_redirect(admin_url('admin.php?page=list-best-time'));
+    }
 }
 
 /**
@@ -152,54 +370,54 @@ function callSettings() {
         }
     </style>
     <div class="wrap">  
-        <h1> <?php echo _e('Settings and Options', 'cqp'); ?></h2>
-            <?php _statusMessage('Settings and Options'); ?>
-            <div id="poststuff" class="metabox-holder ppw-settings">
-                <div class="postbox" id="ppw_global_postbox">                 
-                    <div class="inside">                               
-                        <div>
-                            <form id="callback_settings" method="post" action="<?php echo get_admin_url() ?>admin-post.php" onsubmit="return validate();">  
-                                <fieldset>
-                                    <input type='hidden' name='action' value='submit-callback-settings-form' />
-                                    <table width="600px" cellpadding="0" cellspacing="0" class="form-table">
-                                        <tr>
-                                            <td>Top background color : </td>
-                                            <td><input readonly type="text" id="picker1" name="picker1" style="border-color:<?php echo $picker1; ?>" value="<?php echo $picker1; ?>"></input></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Bottom background color : </td>
-                                            <td><input readonly type="text" id="picker2" name="picker2" style="border-color:<?php echo $picker2; ?>" value="<?php echo $picker2; ?>"></input></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Callback button background color : </td>
-                                            <td><input readonly type="text" id="picker3" name="picker3" style="border-color:<?php echo $picker3; ?>" value="<?php echo $picker3; ?>"></input></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Help button background color : </td>
-                                            <td><input readonly type="text" id="picker4" name="picker4" style="border-color:<?php echo $picker4; ?>" value="<?php echo $picker4; ?>"></input></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Admin email</td>
-                                            <td><input type="text" id="call_back_admin_email" name="call_back_admin_email" value="<?php echo $call_back_admin_email; ?>"></input></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Recaptcha site key</td>
-                                            <td><input type="text" id="site_key" name="site_key" size="40" value="<?php echo $site_key; ?>"></input></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Recaptcha secret</td>
-                                            <td><input type="text" id="secret" name="secret" size="40" value="<?php echo $secret; ?>"></input></td>
-                                        </tr>
-                                        <tr>                                
-                                            <td colspan="2"><input class="button-primary" type="submit" id="submit_form_settings" name="submit_form_settings"></input></td>
-                                        </tr>
-                                    </table>
-                                </fieldset>
-                            </form>
-                        </div>                         
-                    </div>
-                </div>           
-            </div>
+        <h1> <?php echo _e('Settings and Options', 'cqp'); ?></h1>
+        <?php _statusMessage('Settings and Options'); ?>
+        <div id="poststuff" class="metabox-holder ppw-settings">
+            <div class="postbox" id="ppw_global_postbox">                 
+                <div class="inside">                               
+                    <div>
+                        <form id="callback_settings" method="post" action="<?php echo get_admin_url() ?>admin-post.php" onsubmit="return validate();">  
+                            <fieldset>
+                                <input type='hidden' name='action' value='submit-callback-settings-form' />
+                                <table width="600px" cellpadding="0" cellspacing="0" class="form-table">
+                                    <tr>
+                                        <td>Top background color : </td>
+                                        <td><input readonly type="text" id="picker1" name="picker1" style="border-color:<?php echo $picker1; ?>" value="<?php echo $picker1; ?>"></input></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Bottom background color : </td>
+                                        <td><input readonly type="text" id="picker2" name="picker2" style="border-color:<?php echo $picker2; ?>" value="<?php echo $picker2; ?>"></input></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Callback button background color : </td>
+                                        <td><input readonly type="text" id="picker3" name="picker3" style="border-color:<?php echo $picker3; ?>" value="<?php echo $picker3; ?>"></input></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Help button background color : </td>
+                                        <td><input readonly type="text" id="picker4" name="picker4" style="border-color:<?php echo $picker4; ?>" value="<?php echo $picker4; ?>"></input></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Admin email</td>
+                                        <td><input type="text" id="call_back_admin_email" name="call_back_admin_email" value="<?php echo $call_back_admin_email; ?>"></input></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Recaptcha site key</td>
+                                        <td><input type="text" id="site_key" name="site_key" size="40" value="<?php echo $site_key; ?>"></input></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Recaptcha secret</td>
+                                        <td><input type="text" id="secret" name="secret" size="40" value="<?php echo $secret; ?>"></input></td>
+                                    </tr>
+                                    <tr>                                
+                                        <td colspan="2"><input class="button-primary" type="submit" id="submit_form_settings" name="submit_form_settings"></input></td>
+                                    </tr>
+                                </table>
+                            </fieldset>
+                        </form>
+                    </div>                         
+                </div>
+            </div>           
+        </div>
 
     </div>
     <script>
@@ -400,22 +618,26 @@ class wpgcallmeback_Widget extends WP_Widget {
                         <div class="wpginfo"><?php echo $wpginfo; ?></div>
                         <div class="wpgform"><form action="#" method="post" enctype="application/x-www-form-urlencoded" name="callbackwidget">
                                 <input name="rname" type="text" value="Name"  onclick="this.value = '';" onblur="if (this.value == '') {
-                                                            this.value = 'Name'
-                                                        }" size="17" />
+                                            this.value = 'Name'
+                                        }" size="17" />
                                 <input name="rnumber" type="text" value="Number"  onclick="this.value = '';"  onblur="if (this.value == '') {
-                                                            this.value = 'Number'
-                                                        }"  size="17" />
+                                            this.value = 'Number'
+                                        }"  size="17" />
                                 <input name="remail" type="text" value="Email"  onclick="this.value = '';"  onblur="if (this.value == '') {
-                                                            this.value = 'Email'
-                                                        }"  size="17" />
+                                            this.value = 'Email'
+                                        }"  size="17" />
                                 <input name="postcode" type="text" value="Postcode"  onclick="this.value = '';"  onblur="if (this.value == '') {
-                                                            this.value = 'Postcode'
-                                                        }"  size="17" />
+                                            this.value = 'Postcode'
+                                        }"  size="17" />
                                 <select class="wpgselect" name="rtime" size="1">
                                     <option selected="selected">Select best time to call</option>
-                                    <option value="Morning">Morning</option>
-                                    <option value="Afternoon">Afternoon</option>
-                                    <option value="Evening">Evening</option>
+                                    <?php
+                                    global $wpdb;
+                                    $getAllBestTimes = $wpdb->get_results('SELECT best_time FROM  ' . $wpdb->prefix . 'call_back_best_time');                                   
+                                    foreach ($getAllBestTimes as $getAllBestTime) {
+                                        echo '<option value=' . $getAllBestTime->best_time . '>' . $getAllBestTime->best_time . '</option>';
+                                    }
+                                    ?>                                                                       
                                 </select>
                                 <div class="g-recaptcha" style="width:100%; display: block;" data-theme="light" data-type="image" data-sitekey="<?php echo $get_option_details['site_key']; ?>"></div>                                                                                
                                 <input name="submit" type="submit" style="background-color: <?php echo $get_option_details['picker3']; ?>" class="callmeback" value="Call me back" />
