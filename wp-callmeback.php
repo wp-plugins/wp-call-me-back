@@ -629,8 +629,7 @@ class wpgcallmeback_Widget extends WP_Widget {
                                 <input name="postcode" type="text" value="Postcode"  onclick="this.value = '';"  onblur="if (this.value == '') {
                                             this.value = 'Postcode'
                                         }"  size="17" />
-                                <select class="wpgselect" name="rtime" size="1">
-                                    <option selected="selected">Select best time to call</option>
+                                <select class="wpgselect" name="rtime" size="1">                                    
                                     <?php
                                     global $wpdb;
                                     $getAllBestTimes = $wpdb->get_results('SELECT best_time FROM  ' . $wpdb->prefix . 'call_back_best_time');                                   
