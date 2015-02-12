@@ -5,7 +5,7 @@ ob_start();
  * Plugin Name: Call me back widget
  * Plugin URI: http://pigeonhut.com
  * Description: Request call me back widget by PigeonHUT
- * Version: 1.14
+ * Version: 1.15
  * Author: Jody Nesbitt (WebPlugins)
  * Author URI: http://webplugins.co.uk
  *
@@ -334,6 +334,8 @@ function callSettings() {
         $site_key = $get_option_details['site_key'];
     if (isset($get_option_details['secret']) && $get_option_details['secret'] != '')
         $secret = $get_option_details['secret'];
+    if (isset($get_option_details['auto-responder']) && $get_option_details['auto-responder'] != '')
+        $getResponder = $get_option_details['auto-responder'];
     ?>
 
     <style>        
@@ -408,6 +410,10 @@ function callSettings() {
                                         <td>Recaptcha secret</td>
                                         <td><input type="text" id="secret" name="secret" size="40" value="<?php echo $secret; ?>"></input></td>
                                     </tr>
+                                    <tr>
+                                        <td>Auto-responder to user</td>
+                                        <td><textarea id="auto-responder" name="auto-responder" cols="90" rows="15"><?php echo $getResponder; ?></textarea></td>
+                                    </tr> 
                                     <tr>                                
                                         <td colspan="2"><input class="button-primary" type="submit" id="submit_form_settings" name="submit_form_settings"></input></td>
                                     </tr>
@@ -471,6 +477,9 @@ function saveCallbackSettings() {
             $insertArray['site_key'] = $_POST['site_key'];
         if (isset($_POST['secret']))
             $insertArray['secret'] = $_POST['secret'];
+        if (isset($_POST['auto-responder']))
+            $insertArray['auto-responder'] = $_POST['auto-responder'];
+
         $serialize_array = serialize($insertArray);
         update_option('rcb_settings_options', $serialize_array);
         $_SESSION['area_status'] = 'updated';
@@ -585,14 +594,25 @@ class wpgcallmeback_Widget extends WP_Widget {
                     $insertArray['postcode'] = $_POST['postcode'];
                     $wpdb->insert($wpdb->prefix . "request_a_call_back", $insertArray, array('%s', '%s'));
                     $mailbody = "< Request call me back > form data
-	Name: $rname
-	Number: $rnumber
-	Best time to call: $rtime
-	Email: $remail";
+                    Name: $rname
+                    Number: $rnumber
+                    Best time to call: $rtime
+                    Email: $remail";
                     $headers = 'From: ' . $admin_email . "\r\n" .
                             'Reply-To: ' . $admin_email . "\r\n" .
                             'X-Mailer: PHP/' . phpversion();
+                    $headers .= 'MIME-Version: 1.0' . "\n";
+                    $headers .= 'Content-type: text/html; charset=iso-8859-1' . "\r\n";
                     if (mail($admin_email, 'Call me back query from website', $mailbody, $headers)) {
+                        
+                    } else {
+                        
+                    }
+                    $nl2br = nl2br($get_option_details['auto-responder']);
+                    $customer_mail_body = str_replace('{name}', $rname, $nl2br);
+                    $customer_mail_body = str_replace('{besttime}', $rtime, $customer_mail_body);
+                    $customer_mail_body = str_replace('{siteadmin}', get_bloginfo(), $customer_mail_body);
+                    if (mail($_POST['remail'], 'Thank you for contacting us!', $customer_mail_body, $headers)) {
                         echo "Thanks for your request. We will call you during your requested timeslot!";
                     } else {
                         echo('Sorry there wa error processing your request. please try again');
@@ -629,10 +649,11 @@ class wpgcallmeback_Widget extends WP_Widget {
                                 <input name="postcode" type="text" value="Postcode"  onclick="this.value = '';"  onblur="if (this.value == '') {
                                             this.value = 'Postcode'
                                         }"  size="17" />
-                                <select class="wpgselect" name="rtime" size="1">                                    
+                                <select class="wpgselect" name="rtime" size="1">
+                                    <option selected="selected">Select best time to call</option>
                                     <?php
                                     global $wpdb;
-                                    $getAllBestTimes = $wpdb->get_results('SELECT best_time FROM  ' . $wpdb->prefix . 'call_back_best_time');                                   
+                                    $getAllBestTimes = $wpdb->get_results('SELECT best_time FROM  ' . $wpdb->prefix . 'call_back_best_time');
                                     foreach ($getAllBestTimes as $getAllBestTime) {
                                         echo '<option value=' . $getAllBestTime->best_time . '>' . $getAllBestTime->best_time . '</option>';
                                     }
