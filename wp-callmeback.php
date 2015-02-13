@@ -5,7 +5,7 @@ ob_start();
  * Plugin Name: Call me back widget
  * Plugin URI: http://pigeonhut.com
  * Description: Request call me back widget by PigeonHUT
- * Version: 1.15
+ * Version: 1.16
  * Author: Jody Nesbitt (WebPlugins)
  * Author URI: http://webplugins.co.uk
  *
@@ -336,6 +336,8 @@ function callSettings() {
         $secret = $get_option_details['secret'];
     if (isset($get_option_details['auto-responder']) && $get_option_details['auto-responder'] != '')
         $getResponder = $get_option_details['auto-responder'];
+    if (isset($get_option_details['subject']) && $get_option_details['subject'] != '')
+        $subject = $get_option_details['subject'];
     ?>
 
     <style>        
@@ -411,6 +413,10 @@ function callSettings() {
                                         <td><input type="text" id="secret" name="secret" size="40" value="<?php echo $secret; ?>"></input></td>
                                     </tr>
                                     <tr>
+                                        <td>Mail subject</td>
+                                        <td><input type="text" id="subject" name="subject" size="40" value="<?php echo $subject; ?>"></input></td>
+                                    </tr>
+                                    <tr>
                                         <td>Auto-responder to user</td>
                                         <td><textarea id="auto-responder" name="auto-responder" cols="90" rows="15"><?php echo $getResponder; ?></textarea></td>
                                     </tr> 
@@ -479,6 +485,8 @@ function saveCallbackSettings() {
             $insertArray['secret'] = $_POST['secret'];
         if (isset($_POST['auto-responder']))
             $insertArray['auto-responder'] = $_POST['auto-responder'];
+        if (isset($_POST['subject']))
+            $insertArray['subject'] = $_POST['subject'];
 
         $serialize_array = serialize($insertArray);
         update_option('rcb_settings_options', $serialize_array);
@@ -581,8 +589,13 @@ class wpgcallmeback_Widget extends WP_Widget {
                             $_SERVER["REMOTE_ADDR"], $_POST["g-recaptcha-response"]
                     );
                 }
-                if ($resp != null && $resp->success) {
+                //if ($resp != null && $resp->success) {
                     $admin_email = $get_option_details['call_back_admin_email'];
+                    if($get_option_details['subject']!='' && isset($get_option_details['subject'])){
+                        $setSubject=$get_option_details['subject'];
+                    } else {
+                        $setSubject='Call me back query from website';
+                    }
                     $rname = $_POST['rname'];
                     $rnumber = $_POST['rnumber'];
                     $rtime = $_POST['rtime'];
@@ -593,17 +606,18 @@ class wpgcallmeback_Widget extends WP_Widget {
                     $insertArray['besttime'] = $_POST['rtime'];
                     $insertArray['postcode'] = $_POST['postcode'];
                     $wpdb->insert($wpdb->prefix . "request_a_call_back", $insertArray, array('%s', '%s'));
-                    $mailbody = "< Request call me back > form data
-                    Name: $rname
-                    Number: $rnumber
-                    Best time to call: $rtime
-                    Email: $remail";
+                    $mailbody = "Hello Admin, </br></br>
+                    Please see below for the enquiry received from one of our customer with details.</br>
+                    Name: $rname </br>
+                    Number: $rnumber</br>
+                    Best time to call: $rtime</br>
+                    Email: $remail</br></br> Regards,<br/>".get_bloginfo();                   
                     $headers = 'From: ' . $admin_email . "\r\n" .
                             'Reply-To: ' . $admin_email . "\r\n" .
                             'X-Mailer: PHP/' . phpversion();
                     $headers .= 'MIME-Version: 1.0' . "\n";
                     $headers .= 'Content-type: text/html; charset=iso-8859-1' . "\r\n";
-                    if (mail($admin_email, 'Call me back query from website', $mailbody, $headers)) {
+                    if (mail($admin_email, $setSubject, $mailbody, $headers)) {
                         
                     } else {
                         
@@ -617,9 +631,9 @@ class wpgcallmeback_Widget extends WP_Widget {
                     } else {
                         echo('Sorry there wa error processing your request. please try again');
                     }
-                } else {
-                    echo 'Please enter correct captcha code';
-                }
+//                } else {
+//                    echo 'Please enter correct captcha code';
+//                }
             } else {
                 ?>
                 <style>
