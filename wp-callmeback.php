@@ -5,7 +5,7 @@ ob_start();
  * Plugin Name: Call me back widget
  * Plugin URI: http://pigeonhut.com
  * Description: Request call me back widget by PigeonHUT
- * Version: 1.16
+ * Version: 1.17
  * Author: Jody Nesbitt (WebPlugins)
  * Author URI: http://webplugins.co.uk
  *
@@ -18,6 +18,9 @@ if (!class_exists('Wpg_Callback_List_Table')) {
 }
 if (!class_exists('Wpg_Besttime_List_Table')) {
     require_once( plugin_dir_path(__FILE__) . 'class/class-wpg-besttime-list-table.php' );
+}
+if (!class_exists('Wpg_DropdownOptions_List_Table')) {
+    require_once( plugin_dir_path(__FILE__) . 'class/class-wpg-dropdownoptions-list-table.php' );
 }
 if (!class_exists('ReCaptcha')) {
     require_once( plugin_dir_path(__FILE__) . 'class/recaptchalib.php' );
@@ -44,7 +47,9 @@ function initialize_table() {
             `number` varchar(255) default NULL,
             `postcode` bigint(20) default NULL,
             `email` varchar(255) default NULL,
-            `besttime` varchar(255) DEFAULT NULL,            
+            `besttime` varchar(255) DEFAULT NULL, 
+            `options` varchar(255) DEFAULT NULL, 
+            `message` varchar(255) DEFAULT NULL, 
             `dateCreated` timestamp NOT NULL,
             PRIMARY KEY (`id`))ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1;";
     $wpdb->query($sql);
@@ -54,11 +59,21 @@ function initialize_table() {
             `dateCreated` timestamp NOT NULL,
             PRIMARY KEY (`id`))ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1;";
     $wpdb->query($sql);
+    $sql = "CREATE TABLE IF NOT EXISTS `" . $wpdb->prefix . "drop_down_options" . "` (
+            `id` bigint(20) unsigned NOT NULL auto_increment,
+            `option` varchar(255) default NULL,                     
+            `dateCreated` timestamp NOT NULL,
+            PRIMARY KEY (`id`))ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1;";
+    $wpdb->query($sql);
     add_menu_page(__('Request a call back', 'rcb'), __('Request a call back', 'rcb'), 'manage_options', 'request-call-back', 'callRequestCallBack', '');
     add_submenu_page('request-call-back', __('Settings and options', 'rcb'), __('Settings and options', 'rcb'), 'manage_options', 'settings-options', 'callSettings');
-    add_submenu_page('request-call-back', __('Best time', 'rcb'), __('Best time', 'rcb'), 'manage_options', 'list-best-time', 'listBestTime');
-    add_submenu_page('', __('Add Best time', 'rcb'), __('Add Best time', 'rcb'), 'manage_options', 'rcb-best-time', 'rcbBestTime');
-    add_submenu_page('', __('Delete Best time', 'rcb'), __('Delete Best time', 'rcb'), 'manage_options', 'delete-best-time', 'rcbDeleteBestTime');
+    add_submenu_page('request-call-back', __('Dropdown Options', 'rcb'), __('Dropdown Options', 'rcb'), 'manage_options', 'list-best-time', 'listBestTime');
+    add_submenu_page('', __('Add Dropdown Options', 'rcb'), __('Add Dropdown Options', 'rcb'), 'manage_options', 'rcb-best-time', 'rcbBestTime');
+    add_submenu_page('', __('Delete Dropdown Options', 'rcb'), __('Delete Dropdown Options', 'rcb'), 'manage_options', 'delete-best-time', 'rcbDeleteBestTime');
+
+    add_submenu_page('request-call-back', __('Dropdown Options2', 'rcb'), __('Dropdown Options2', 'rcb'), 'manage_options', 'list-options-two', 'listOptionsTwo');
+    add_submenu_page('', __('Add Dropdown Options2', 'rcb'), __('Add Dropdown Options2', 'rcb'), 'manage_options', 'rcb-options-two', 'rcbOptionsTwo');
+    add_submenu_page('', __('Delete Dropdown Options2', 'rcb'), __('Delete Dropdown Options2', 'rcb'), 'manage_options', 'delete-options-two', 'rcbDeleteOptionsTwo');
 }
 
 function wpgcallmeback_style() {
@@ -77,11 +92,217 @@ add_action('wp_enqueue_scripts', 'wpgcallmeback_style');
 add_action('admin_enqueue_scripts', 'adminCallBackScripts');
 add_action('admin_post_submit-callback-settings-form', 'saveCallbackSettings');
 add_action('admin_post_submit-besttime-form', 'saveBestTime');
+add_action('admin_post_submit-dropdownoptions-form', 'saveDropdownOptions');
 
 function adminCallBackScripts() {
     wp_register_style('wpgcallmeback-style', plugins_url('css/colpick.css', __FILE__), array(), '20120208', 'all');
     wp_enqueue_script('wpgcallmeback-style', plugins_url('js/colpick.js', __FILE__), array(), '1.0.0', true);
     wp_enqueue_style('wpgcallmeback-style');
+}
+
+function listOptionsTwo() {
+    session_start();
+    global $wpdb;
+    ?>
+    <style>        
+        ﻿.alert-box {
+            color:#555;
+            border-radius:10px;
+            font-family:Tahoma,Geneva,Arial,sans-serif;font-size:11px;
+            padding:10px 36px;
+            margin:10px;
+        }
+        .alert-box span {
+            font-weight:bold;
+            text-transform:uppercase;
+        }
+        .errormes {
+            background:#ffecec no-repeat 10px 50%;
+            border:1px solid #f5aca6;
+            padding: 10px;
+        }
+        .success {
+            background:#e9ffd9 no-repeat 10px 50%;
+            border:1px solid #a6ca8a;
+            padding: 10px;
+        }
+        .warning {
+            background:#fff8c4 no-repeat 10px 50%;
+            border:1px solid #f2c779;
+            padding: 10px;
+        }
+        .notice {
+            background:#e3f7fc  no-repeat 10px 50%;
+            border:1px solid #8ed9f6;
+            padding: 10px;
+        }
+    </style>
+    <div class="wrap">                               
+        <h2><?php _e('Dropdown Options2', 'wpre'); ?> <a class="add-new-h2" href="<?php echo admin_url() ?>admin.php?page=rcb-options-two">Add New</a></h2> 
+        <?php _statusMessage('Dropdown Options2'); ?>
+        <div id="poststuff" class="metabox-holder ppw-settings">
+            <div class="postbox" id="ppw_global_postbox">                           
+                <div class="inside">  
+                    <form id="size" name="options" method="post" onsubmit="return submitcount('options');" action="">
+                        <?php
+                        if ($_REQUEST['action'] == 'delete') {
+                            $del = $_REQUEST['options'];
+                            if ($del != '') {
+                                $idsToDelete = implode($del, ',');
+                                global $wpdb;
+                                $wpdb->query($wpdb->prepare("DELETE FROM " . $wpdb->prefix . "drop_down_options WHERE id IN ($idsToDelete)"));
+                                if ($wpdb->rows_affected > 0) {
+                                    $_SESSION['area_status'] = 'deletesuccess';
+                                    wp_redirect(admin_url('admin.php?page=list-options-two&paged="' . $_GET['paged'] . '"'));
+                                    exit;
+                                }
+                            } else {
+                                $_SESSION['area_status'] = 'deletefailed';
+                                if ($_GET['paged'] != '') {
+                                    wp_redirect(admin_url('admin.php?page=list-options-two&paged="' . $_GET['paged'] . '"'));
+                                } else {
+                                    wp_redirect(admin_url('admin.php?page=list-options-two'));
+                                }
+                            }
+                        }
+
+                        $myListTable = new Wpg_DropdownOptions_List_Table();
+                        $myListTable->prepare_items();
+                        $myListTable->display();
+                        ?>
+                    </form>      
+                </div>
+            </div>           
+        </div>
+    </div><?php
+}
+
+function rcbOptionsTwo() {
+
+    session_start();
+    global $wpdb;
+    if ($_REQUEST['action'] == 'edit' && $_REQUEST['options'] != '') {
+        $getBestTime = '';
+        $getDetails = $wpdb->get_row('SELECT * FROM  ' . $wpdb->prefix . 'drop_down_options WHERE id=' . $_REQUEST['options']);
+        if ($getDetails != NULL) {
+            $getId = $getDetails->id;
+            $getBestTime = $getDetails->option;
+        }
+    }
+    ?>
+    <style>        
+        ﻿.alert-box {
+            color:#555;
+            border-radius:10px;
+            font-family:Tahoma,Geneva,Arial,sans-serif;font-size:11px;
+            padding:10px 36px;
+            margin:10px;
+        }
+        .alert-box span {
+            font-weight:bold;
+            text-transform:uppercase;
+        }
+        .errormes {
+            background:#ffecec no-repeat 10px 50%;
+            border:1px solid #f5aca6;
+            padding: 10px;
+        }
+        .success {
+            background:#e9ffd9 no-repeat 10px 50%;
+            border:1px solid #a6ca8a;
+            padding: 10px;
+        }
+        .warning {
+            background:#fff8c4 no-repeat 10px 50%;
+            border:1px solid #f2c779;
+            padding: 10px;
+        }
+        .notice {
+            background:#e3f7fc  no-repeat 10px 50%;
+            border:1px solid #8ed9f6;
+            padding: 10px;
+        }
+    </style>
+    <div class="wrap">  
+        <h1> <?php echo _e('Add Dropdown options2', 'cqp'); ?></h1>       
+        <div id="poststuff" class="metabox-holder ppw-settings">
+            <div class="postbox" id="ppw_global_postbox">                 
+                <div class="inside">                               
+                    <div>
+                        <form id="callback_settings" method="post" action="<?php echo get_admin_url() ?>admin-post.php" onsubmit="return validate();">  
+                            <fieldset>
+                                <input type='hidden' name='action' value='submit-dropdownoptions-form' />
+                                <input type='hidden' name='id' value='<?php echo $getId ?>' />
+                                <input type='hidden' name='paged' value='<?php echo $_GET['paged']; ?>' />
+                                <table width="600px" cellpadding="0" cellspacing="0" class="form-table">
+                                    <tr>
+                                        <td>Options</td>
+                                        <td><input type="text" id="options" name="options" value="<?php echo $getBestTime; ?>"></input></td>
+                                    </tr>                                        
+                                    <tr>                                
+                                        <td colspan="2"><input class="button-primary" type="submit" id="submit_form_settings" name="submit_form_settings"></input></td>
+                                    </tr>
+                                </table>
+                            </fieldset>
+                        </form>
+                    </div>                         
+                </div>
+            </div>           
+        </div>
+    </div>
+    <script>
+        jQuery(document).ready(function () {
+            jQuery('#submit_form_settings').click(function () {
+                if (jQuery('#options').val() == '') {
+                    alert('Please enter Dropdown options');
+                    return false;
+                } else {
+                    return true;
+                }
+            });
+        });
+    </script>
+    <?php
+}
+
+function rcbDeleteOptionsTwo() {
+    session_start();
+    global $wpdb;
+    $wpdb->delete($wpdb->prefix . "drop_down_options", array('id' => $_GET['options']));
+    if ($wpdb->rows_affected > 0) {
+        $_SESSION['area_status'] = 'deletesuccess';
+    } else {
+        $_SESSION['area_status'] = 'deletefailed';
+    }
+    if ($_GET['paged'] != '') {
+        wp_redirect(admin_url('admin.php?page=list-options-two&paged="' . $_GET['paged'] . '"'));
+        exit;
+    }
+    wp_redirect(admin_url('admin.php?page=list-options-two'));
+}
+
+function saveDropdownOptions() {
+    session_start();
+    global $wpdb;
+    if (isset($_POST['submit_form_settings'])) {
+        $insertArray['option'] = $_POST['options'];
+        if ($_POST['id'] != '') {
+            $wpdb->update($wpdb->prefix . "drop_down_options", $insertArray, array('id' => $_POST['id']), array('%s', '%s'), array('%d'));
+            $_SESSION['area_status'] = 'updated';
+        } else {
+            $wpdb->insert($wpdb->prefix . "drop_down_options", $insertArray, array('%s', '%s'));
+            if ($wpdb->insert_id > 0) {
+                $_SESSION['area_status'] = 'success';
+            } else {
+                $_SESSION['area_status'] = 'failed';
+            }
+        }
+        if ($_POST['paged'] != '') {
+            wp_redirect(admin_url('admin.php?page=list-options-two&paged="' . $_POST['paged'] . '"'));
+            exit;
+        }
+        wp_redirect(admin_url('admin.php?page=list-options-two'));
+    }
 }
 
 function rcbDeleteBestTime() {
@@ -138,8 +359,8 @@ function listBestTime() {
         }
     </style>
     <div class="wrap">                               
-        <h2><?php _e('Best time', 'wpre'); ?> <a class="add-new-h2" href="<?php echo admin_url() ?>admin.php?page=rcb-best-time">Add New</a></h2> 
-        <?php _statusMessage('Best time'); ?>
+        <h2><?php _e('Dropdown Options', 'wpre'); ?> <a class="add-new-h2" href="<?php echo admin_url() ?>admin.php?page=rcb-best-time">Add New</a></h2> 
+        <?php _statusMessage('Dropdown Options'); ?>
         <div id="poststuff" class="metabox-holder ppw-settings">
             <div class="postbox" id="ppw_global_postbox">                           
                 <div class="inside">  
@@ -188,7 +409,6 @@ function rcbBestTime() {
             $getBestTime = $getDetails->best_time;
         }
     }
-    $getAllDetails = $wpdb->get_results('SELECT id,manufacturer FROM  ' . $wpdb->prefix . 'call_back_best_time');
     ?>
     <style>        
         ﻿.alert-box {
@@ -338,6 +558,8 @@ function callSettings() {
         $getResponder = $get_option_details['auto-responder'];
     if (isset($get_option_details['subject']) && $get_option_details['subject'] != '')
         $subject = $get_option_details['subject'];
+    if (isset($get_option_details['dropdown-two']) && $get_option_details['dropdown-two'] != '')
+        $dropdown = $get_option_details['dropdown-two'];
     ?>
 
     <style>        
@@ -420,6 +642,17 @@ function callSettings() {
                                         <td>Auto-responder to user</td>
                                         <td><textarea id="auto-responder" name="auto-responder" cols="90" rows="15"><?php echo $getResponder; ?></textarea></td>
                                     </tr> 
+                                    <tr>
+                                        <td>Show dropdown option two</td>
+                                        <?php
+                                        if ($dropdown == 1) {
+                                            $checked = 'checked="checked"';
+                                        } else {
+                                            $checked = '';
+                                        }
+                                        ?>
+                                        <td><input <?php echo $checked; ?> type="checkbox" id="dropdown-two" name="dropdown-two" size="40" value="1"></input></td>
+                                    </tr> 
                                     <tr>                                
                                         <td colspan="2"><input class="button-primary" type="submit" id="submit_form_settings" name="submit_form_settings"></input></td>
                                     </tr>
@@ -487,6 +720,8 @@ function saveCallbackSettings() {
             $insertArray['auto-responder'] = $_POST['auto-responder'];
         if (isset($_POST['subject']))
             $insertArray['subject'] = $_POST['subject'];
+        if (isset($_POST['dropdown-two']))
+            $insertArray['dropdown-two'] = $_POST['dropdown-two'];
 
         $serialize_array = serialize($insertArray);
         update_option('rcb_settings_options', $serialize_array);
@@ -574,6 +809,7 @@ class wpgcallmeback_Widget extends WP_Widget {
         /* call back from start */
         if ($show_form)
             if (isset($_POST['submit'])) {
+                //echo '<pre>'; print_r($_POST); exit;
                 $siteKey = $get_option_details['site_key'];
                 $secret = $get_option_details['secret'];
 // reCAPTCHA supported 40+ languages listed here: https://developers.google.com/recaptcha/docs/language
@@ -590,47 +826,57 @@ class wpgcallmeback_Widget extends WP_Widget {
                     );
                 }
                 //if ($resp != null && $resp->success) {
-                    $admin_email = $get_option_details['call_back_admin_email'];
-                    if($get_option_details['subject']!='' && isset($get_option_details['subject'])){
-                        $setSubject=$get_option_details['subject'];
-                    } else {
-                        $setSubject='Call me back query from website';
-                    }
-                    $rname = $_POST['rname'];
-                    $rnumber = $_POST['rnumber'];
-                    $rtime = $_POST['rtime'];
-                    $remail = $_POST['remail'];
-                    $insertArray['name'] = $_POST['rname'];
-                    $insertArray['number'] = $_POST['rnumber'];
-                    $insertArray['email'] = $_POST['remail'];
-                    $insertArray['besttime'] = $_POST['rtime'];
-                    $insertArray['postcode'] = $_POST['postcode'];
-                    $wpdb->insert($wpdb->prefix . "request_a_call_back", $insertArray, array('%s', '%s'));
-                    $mailbody = "Hello Admin, </br></br>
+                $admin_email = $get_option_details['call_back_admin_email'];
+                if ($get_option_details['subject'] != '' && isset($get_option_details['subject'])) {
+                    $setSubject = $get_option_details['subject'];
+                } else {
+                    $setSubject = 'Call me back query from website';
+                }
+                $rname = $_POST['rname'];
+                $rnumber = $_POST['rnumber'];
+                $rtime = $_POST['rtime'];
+                $remail = $_POST['remail'];
+                $roption = $_POST['optiontwo'];
+                $rmessage = $_POST['message'];
+                $insertArray['name'] = $_POST['rname'];
+                $insertArray['number'] = $_POST['rnumber'];
+                $insertArray['email'] = $_POST['remail'];
+                $insertArray['besttime'] = $_POST['rtime'];
+                $insertArray['postcode'] = $_POST['postcode'];
+                if ($get_option_details['dropdown-two'] == 1) {
+                    $insertArray['options'] = $_POST['optiontwo'];
+                    $insertArray['message'] = $_POST['message'];
+                }
+                $wpdb->insert($wpdb->prefix . "request_a_call_back", $insertArray, array('%s', '%s'));
+                $mailbody .= "Hello Admin, </br></br>
                     Please see below for the enquiry received from one of our customer with details.</br>
                     Name: $rname </br>
                     Number: $rnumber</br>
                     Best time to call: $rtime</br>
-                    Email: $remail</br></br> Regards,<br/>".get_bloginfo();                   
-                    $headers = 'From: ' . $admin_email . "\r\n" .
-                            'Reply-To: ' . $admin_email . "\r\n" .
-                            'X-Mailer: PHP/' . phpversion();
-                    $headers .= 'MIME-Version: 1.0' . "\n";
-                    $headers .= 'Content-type: text/html; charset=iso-8859-1' . "\r\n";
-                    if (mail($admin_email, $setSubject, $mailbody, $headers)) {
-                        
-                    } else {
-                        
-                    }
-                    $nl2br = nl2br($get_option_details['auto-responder']);
-                    $customer_mail_body = str_replace('{name}', $rname, $nl2br);
-                    $customer_mail_body = str_replace('{besttime}', $rtime, $customer_mail_body);
-                    $customer_mail_body = str_replace('{siteadmin}', get_bloginfo(), $customer_mail_body);
-                    if (mail($_POST['remail'], 'Thank you for contacting us!', $customer_mail_body, $headers)) {
-                        echo "Thanks for your request. We will call you during your requested timeslot!";
-                    } else {
-                        echo('Sorry there wa error processing your request. please try again');
-                    }
+                    Email: $remail</br>";
+                if ($get_option_details['dropdown-two'] == 1) {
+                    $mailbody .="Option: $roption</br> Message: $rmessage</br>";                   
+                }
+                $mailbody .="</br> Regards,<br/>" . get_bloginfo();
+                $headers = 'From: ' . $admin_email . "\r\n" .
+                        'Reply-To: ' . $admin_email . "\r\n" .
+                        'X-Mailer: PHP/' . phpversion();
+                $headers .= 'MIME-Version: 1.0' . "\n";
+                $headers .= 'Content-type: text/html; charset=iso-8859-1' . "\r\n";
+                if (mail($admin_email, $setSubject, $mailbody, $headers)) {
+                    
+                } else {
+                    
+                }
+                $nl2br = nl2br($get_option_details['auto-responder']);
+                $customer_mail_body = str_replace('{name}', $rname, $nl2br);
+                $customer_mail_body = str_replace('{besttime}', $rtime, $customer_mail_body);
+                $customer_mail_body = str_replace('{siteadmin}', get_bloginfo(), $customer_mail_body);
+                if (mail($_POST['remail'], 'Thank you for contacting us!', $customer_mail_body, $headers)) {
+                    echo "Thanks for your request. We will call you during your requested timeslot!";
+                } else {
+                    echo('Sorry there wa error processing your request. please try again');
+                }
 //                } else {
 //                    echo 'Please enter correct captcha code';
 //                }
@@ -663,8 +909,7 @@ class wpgcallmeback_Widget extends WP_Widget {
                                 <input name="postcode" type="text" value="Postcode"  onclick="this.value = '';"  onblur="if (this.value == '') {
                                             this.value = 'Postcode'
                                         }"  size="17" />
-                                <select class="wpgselect" name="rtime" size="1">
-                                    <option selected="selected">Select best time to call</option>
+                                <select class="wpgselect" name="rtime" size="1">                                    
                                     <?php
                                     global $wpdb;
                                     $getAllBestTimes = $wpdb->get_results('SELECT best_time FROM  ' . $wpdb->prefix . 'call_back_best_time');
@@ -673,6 +918,20 @@ class wpgcallmeback_Widget extends WP_Widget {
                                     }
                                     ?>                                                                       
                                 </select>
+                                <?php if ($get_option_details['dropdown-two'] == 1) { ?>
+                                    <select class="wpgselect" name="optiontwo" size="1">                                    
+                                        <?php
+                                        global $wpdb;
+                                        $getAllBestTimes = $wpdb->get_results('SELECT * FROM  ' . $wpdb->prefix . 'drop_down_options');                                        
+                                        foreach ($getAllBestTimes as $getAllBestTime) {
+                                            echo '<option value=' . $getAllBestTime->option . '>' . $getAllBestTime->option . '</option>';
+                                        }
+                                        ?>                                                                       
+                                    </select>
+                                    <input name="message" type="text" value="Message"  onclick="this.value = '';"  onblur="if (this.value == '') {
+                                                this.value = 'Message'
+                                            }"  size="17" />
+                                       <?php } ?>
                                 <div class="g-recaptcha" style="width:100%; display: block;" data-theme="light" data-type="image" data-sitekey="<?php echo $get_option_details['site_key']; ?>"></div>                                                                                
                                 <input name="submit" type="submit" style="background-color: <?php echo $get_option_details['picker3']; ?>" class="callmeback" value="Call me back" />
                             </form></div>
