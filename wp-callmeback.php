@@ -5,7 +5,7 @@ ob_start();
  * Plugin Name: Call me back widget
  * Plugin URI: http://pigeonhut.com
  * Description: Request call me back widget by PigeonHUT
- * Version: 1.18
+ * Version: 1.17
  * Author: Jody Nesbitt (WebPlugins)
  * Author URI: http://webplugins.co.uk
  *
@@ -24,6 +24,9 @@ if (!class_exists('Wpg_DropdownOptions_List_Table')) {
 }
 if (!class_exists('ReCaptcha')) {
     require_once( plugin_dir_path(__FILE__) . 'class/recaptchalib.php' );
+}
+if (!class_exists('NMRichReviewsAdminHelper')) {
+    require_once(plugin_dir_path(__FILE__) . 'class/admin-view-helper-functions.php');
 }
 // Register API keys at https://www.google.com/recaptcha/admin
 $get_option_details = unserialize(get_option('rcb_settings_options'));
@@ -65,7 +68,7 @@ function initialize_table() {
             `dateCreated` timestamp NOT NULL,
             PRIMARY KEY (`id`))ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1;";
     $wpdb->query($sql);
-    add_menu_page(__('Request a call back', 'rcb'), __('Request a call back', 'rcb'), 'manage_options', 'request-call-back', 'callRequestCallBack', '');
+    add_menu_page(__('Call Back', 'rcb'), __('Call Back', 'rcb'), 'manage_options', 'request-call-back', 'callRequestCallBack', '');
     add_submenu_page('request-call-back', __('Settings and options', 'rcb'), __('Settings and options', 'rcb'), 'manage_options', 'settings-options', 'callSettings');
     add_submenu_page('request-call-back', __('Dropdown Options', 'rcb'), __('Dropdown Options', 'rcb'), 'manage_options', 'list-best-time', 'listBestTime');
     add_submenu_page('', __('Add Dropdown Options', 'rcb'), __('Add Dropdown Options', 'rcb'), 'manage_options', 'rcb-best-time', 'rcbBestTime');
@@ -74,6 +77,17 @@ function initialize_table() {
     add_submenu_page('request-call-back', __('Dropdown Options2', 'rcb'), __('Dropdown Options2', 'rcb'), 'manage_options', 'list-options-two', 'listOptionsTwo');
     add_submenu_page('', __('Add Dropdown Options2', 'rcb'), __('Add Dropdown Options2', 'rcb'), 'manage_options', 'rcb-options-two', 'rcbOptionsTwo');
     add_submenu_page('', __('Delete Dropdown Options2', 'rcb'), __('Delete Dropdown Options2', 'rcb'), 'manage_options', 'delete-options-two', 'rcbDeleteOptionsTwo');
+}
+
+function rcbTabs() {
+    $pluginDirectory = trailingslashit(plugins_url(basename(dirname(__FILE__))));
+    wp_register_style('wp-callmeback-css', $pluginDirectory . 'css/wp-callmeback.css');
+    wp_enqueue_style('wp-callmeback-css');
+    $my_plugin_tabs = array(
+        'request-call-back' => 'Contact Requests',
+        'settings-options' => 'Settings'
+    );
+    echo admin_tabs($my_plugin_tabs);
 }
 
 function wpgcallmeback_style() {
@@ -93,6 +107,7 @@ add_action('admin_enqueue_scripts', 'adminCallBackScripts');
 add_action('admin_post_submit-callback-settings-form', 'saveCallbackSettings');
 add_action('admin_post_submit-besttime-form', 'saveBestTime');
 add_action('admin_post_submit-dropdownoptions-form', 'saveDropdownOptions');
+add_action('admin_post_submit-recaptcha-form', 'saveRecaptchaForm');
 
 function adminCallBackScripts() {
     wp_register_style('wpgcallmeback-style', plugins_url('css/colpick.css', __FILE__), array(), '20120208', 'all');
@@ -526,12 +541,44 @@ function wpg_callmeback() {
 }
 
 function callRequestCallBack() {
-    $myListTable = new Wpg_Callback_List_Table();
-    $myListTable->prepare_items();
-    $myListTable->display();
+    rcbTabs();
+    ?>
+    <script>
+        jQuery(document).ready(function () {
+            jQuery("body").addClass("wps-admin-page");
+            // binds form submission and fields to the validation engine          
+            jQuery(".wps-postbox-container .handlediv, .wps-postbox-container .hndle").on("click", function (n) {
+                return n.preventDefault(), jQuery(this).parent().toggleClass("closed");
+            });
+        });
+    </script>  
+    <div class="wrap">
+        <div id="poststuff" class="metabox-holder ppw-settings">
+            <div class="left-side">
+                <?php
+                NMRichReviewsAdminHelper::render_container_open('content-container');
+                NMRichReviewsAdminHelper::render_postbox_open('Contact Request');
+                $myListTable = new Wpg_Callback_List_Table();
+                $myListTable->prepare_items();
+                $myListTable->display();
+                NMRichReviewsAdminHelper::render_postbox_close();
+                NMRichReviewsAdminHelper::render_container_close();
+
+                NMRichReviewsAdminHelper::render_container_open('content-container');
+                NMRichReviewsAdminHelper::render_postbox_open('About');
+                callback_about_us();
+                NMRichReviewsAdminHelper::render_postbox_close();
+                NMRichReviewsAdminHelper::render_container_close();
+                ?>
+            </div>
+        </div>
+        <?php displayRightContactRequest(); ?>
+    </div>
+    <?php
 }
 
 function callSettings() {
+    rcbTabs();
     session_start();
     global $wpdb;
     $picker1 = '';
@@ -562,41 +609,8 @@ function callSettings() {
         $dropdown = $get_option_details['dropdown-two'];
     ?>
 
-    <style>        
-        ﻿.alert-box {
-            color:#555;
-            border-radius:10px;
-            font-family:Tahoma,Geneva,Arial,sans-serif;font-size:11px;
-            padding:10px 36px;
-            margin:10px;
-        }
-        .alert-box span {
-            font-weight:bold;
-            text-transform:uppercase;
-        }
-        .errormes {
-            background:#ffecec no-repeat 10px 50%;
-            border:1px solid #f5aca6;
-            padding: 10px;
-        }
-        .success {
-            background:#e9ffd9 no-repeat 10px 50%;
-            border:1px solid #a6ca8a;
-            padding: 10px;
-        }
-        .warning {
-            background:#fff8c4 no-repeat 10px 50%;
-            border:1px solid #f2c779;
-            padding: 10px;
-        }
-        .notice {
-            background:#e3f7fc  no-repeat 10px 50%;
-            border:1px solid #8ed9f6;
-            padding: 10px;
-        }
-    </style>
     <div class="wrap">  
-        <h1> <?php echo _e('Settings and Options', 'cqp'); ?></h1>
+    <!--        <h1> <?php echo _e('Settings and Options', 'cqp'); ?></h1>-->
         <?php _statusMessage('Settings and Options'); ?>
         <div id="poststuff" class="metabox-holder ppw-settings">
             <div class="postbox" id="ppw_global_postbox">                 
@@ -765,6 +779,68 @@ function _statusMessage($string) {
     }
 }
 
+function recaptchaHtml() {
+    session_start();
+    global $wpdb;
+    $call_back_admin_email = '';
+    $site_key = '';
+    $secret = '';
+    $get_option_details = unserialize(get_option('rcb_recaptcha_options'));
+    if (isset($get_option_details['call_back_admin_email']) && $get_option_details['call_back_admin_email'] != '')
+        $call_back_admin_email = $get_option_details['call_back_admin_email'];
+    if (isset($get_option_details['site_key']) && $get_option_details['site_key'] != '')
+        $site_key = $get_option_details['site_key'];
+    if (isset($get_option_details['secret']) && $get_option_details['secret'] != '')
+        $secret = $get_option_details['secret'];
+    ?>   
+    <?php _statusMessage('Recaptcha settings'); ?>                            
+    <div>
+        <form id="callback_settings" method="post" action="<?php echo get_admin_url() ?>admin-post.php" onsubmit="return validate();">  
+            <fieldset>
+                <input type='hidden' name='action' value='submit-recaptcha-form' />
+                <table width="100%" cellpadding="0" cellspacing="0" class="form-table">                                    
+                    <tr>
+<!--                        <td>Admin email</td>-->
+                        <td>Admin email : <br/><input type="text" id="call_back_admin_email" name="call_back_admin_email" value="<?php echo $call_back_admin_email; ?>"></input></td>
+                    </tr>
+                    <tr>
+<!--                        <td>Recaptcha site key</td>-->
+                        <td>Recaptcha site key: <br/><input type="text" id="site_key" name="site_key" size="40" value="<?php echo $site_key; ?>"></input></td>
+                    </tr>
+                    <tr>
+<!--                        <td>Recaptcha secret</td>-->
+                        <td>Recaptcha secret: <br/> <input type="text" id="secret" name="secret" size="40" value="<?php echo $secret; ?>"></input></td>
+                    </tr>                                                                 
+                    <tr>                                
+                        <td ><input class="button-primary" type="submit" id="submit_form_settings" name="submit_form_settings"></input></td>
+                    </tr>
+                </table>
+            </fieldset>
+        </form>
+    </div>                                         
+    <?php
+}
+
+function saveRecaptchaForm() {
+    session_start();
+    global $wpdb;
+    if (isset($_POST['submit_form_settings'])) {
+
+        if (isset($_POST['call_back_admin_email']))
+            $insertArray['call_back_admin_email'] = $_POST['call_back_admin_email'];
+        if (isset($_POST['site_key']))
+            $insertArray['site_key'] = $_POST['site_key'];
+        if (isset($_POST['secret']))
+            $insertArray['secret'] = $_POST['secret'];
+
+        $serialize_array = serialize($insertArray);
+        update_option('rcb_recaptcha_options', $serialize_array);
+        $_SESSION['area_status'] = 'updated';
+        wp_redirect(admin_url('admin.php?page=request-call-back'));
+    }
+    wp_redirect(admin_url('admin.php?page=request-call-back'));
+}
+
 /**
  * Example Widget class.
  * This class handles everything that needs to be handled with the widget:
@@ -855,7 +931,7 @@ class wpgcallmeback_Widget extends WP_Widget {
                     Best time to call: $rtime</br>
                     Email: $remail</br>";
                 if ($get_option_details['dropdown-two'] == 1) {
-                    $mailbody .="Option: $roption</br> Message: $rmessage</br>";                   
+                    $mailbody .="Option: $roption</br> Message: $rmessage</br>";
                 }
                 $mailbody .="</br> Regards,<br/>" . get_bloginfo();
                 $headers = 'From: ' . $admin_email . "\r\n" .
@@ -898,17 +974,17 @@ class wpgcallmeback_Widget extends WP_Widget {
                         <div class="wpginfo"><?php echo $wpginfo; ?></div>
                         <div class="wpgform"><form action="#" method="post" enctype="application/x-www-form-urlencoded" name="callbackwidget">
                                 <input name="rname" type="text" value="Name"  onclick="this.value = '';" onblur="if (this.value == '') {
-                                            this.value = 'Name'
-                                        }" size="17" />
+                                                            this.value = 'Name'
+                                                        }" size="17" />
                                 <input name="rnumber" type="text" value="Number"  onclick="this.value = '';"  onblur="if (this.value == '') {
-                                            this.value = 'Number'
-                                        }"  size="17" />
+                                                            this.value = 'Number'
+                                                        }"  size="17" />
                                 <input name="remail" type="text" value="Email"  onclick="this.value = '';"  onblur="if (this.value == '') {
-                                            this.value = 'Email'
-                                        }"  size="17" />
+                                                            this.value = 'Email'
+                                                        }"  size="17" />
                                 <input name="postcode" type="text" value="Postcode"  onclick="this.value = '';"  onblur="if (this.value == '') {
-                                            this.value = 'Postcode'
-                                        }"  size="17" />
+                                                            this.value = 'Postcode'
+                                                        }"  size="17" />
                                 <select class="wpgselect" name="rtime" size="1">                                    
                                     <?php
                                     global $wpdb;
@@ -922,15 +998,15 @@ class wpgcallmeback_Widget extends WP_Widget {
                                     <select class="wpgselect" name="optiontwo" size="1">                                    
                                         <?php
                                         global $wpdb;
-                                        $getAllBestTimes = $wpdb->get_results('SELECT * FROM  ' . $wpdb->prefix . 'drop_down_options');                                        
+                                        $getAllBestTimes = $wpdb->get_results('SELECT * FROM  ' . $wpdb->prefix . 'drop_down_options');
                                         foreach ($getAllBestTimes as $getAllBestTime) {
                                             echo '<option value=' . $getAllBestTime->option . '>' . $getAllBestTime->option . '</option>';
                                         }
                                         ?>                                                                       
                                     </select>
                                     <input name="message" type="text" value="Message"  onclick="this.value = '';"  onblur="if (this.value == '') {
-                                                this.value = 'Message'
-                                            }"  size="17" />
+                                                                    this.value = 'Message'
+                                                                }"  size="17" />
                                        <?php } ?>
                                 <div class="g-recaptcha" style="width:100%; display: block;" data-theme="light" data-type="image" data-sitekey="<?php echo $get_option_details['site_key']; ?>"></div>                                                                                
                                 <input name="submit" type="submit" style="background-color: <?php echo $get_option_details['picker3']; ?>" class="callmeback" value="Call me back" />
@@ -1014,5 +1090,77 @@ class wpgcallmeback_Widget extends WP_Widget {
         <?php
     }
 
+}
+
+function displayRightContactRequest() {
+    ?>
+    <div class="right-side">
+        <?php
+        NMRichReviewsAdminHelper::render_container_open('content-container-right');
+        NMRichReviewsAdminHelper::render_postbox_open('Information');
+        callback_contact_request_info();
+        NMRichReviewsAdminHelper::render_postbox_close();
+        NMRichReviewsAdminHelper::render_container_close();
+        NMRichReviewsAdminHelper::render_container_open('content-container-right');
+//        NMRichReviewsAdminHelper::render_postbox_open('What we Do');
+//        //render_rr_what_we_do();
+//        NMRichReviewsAdminHelper::render_postbox_close();
+//        NMRichReviewsAdminHelper::render_container_close();
+        ?>
+    </div>
+    <?php
+}
+
+function callback_about_us() {
+    $output = '<p><strong>WP Social SEO</strong> gives you the ability to quick add your Social Profiles in a compliant way so that it shows up in a google search.</p>
+               <p>Specify your social profiles to Google <a href="https://developers.google.com/webmasters/structured-data/customize/social-profiles" target="_blank">https://developers.google.com/webmasters/structured-data/customize/social-profiles</a></p>
+               <p>Use mark-up on your official website to add your social profile information to the Google Knowledge panel in some searches. Knowledge panels can prominently display your social profile information.</p>
+               <p>Our other free plugins can be found at <a href="https://profiles.wordpress.org/pigeonhut/" target="_blank">https://profiles.wordpress.org/pigeonhut/</a> </p>
+               <p>To see more about us as a company, visit <a href="http://www.web9.co.uk" target="_blank">http://www.web9.co.uk</a></p>
+               <p>Proudly made in Belfast, Northern Ireland.</p>';
+    echo $output;
+}
+
+function callback_contact_request_info() {
+        session_start();
+    global $wpdb;
+    $call_back_admin_email = '';
+    $site_key = '';
+    $secret = '';
+    $get_option_details = unserialize(get_option('rcb_recaptcha_options'));
+    if (isset($get_option_details['call_back_admin_email']) && $get_option_details['call_back_admin_email'] != '')
+        $call_back_admin_email = $get_option_details['call_back_admin_email'];
+    if (isset($get_option_details['site_key']) && $get_option_details['site_key'] != '')
+        $site_key = $get_option_details['site_key'];
+    if (isset($get_option_details['secret']) && $get_option_details['secret'] != '')
+        $secret = $get_option_details['secret'];
+    _statusMessage('Recaptcha settings'); 
+    $output = '<div style="background: none repeat scroll 0 0 #99ff99;display:block;padding: 10px;">Don\'t yet have a Google Recaptcha account ? <a href="http://www.google.com/recaptcha/intro/index.html" target="_blank">Signup Free</a></div></br>';
+    $output1 = '<div class="info_class"><div>
+        <form id="callback_settings" method="post" action="'.get_admin_url().'admin-post.php" onsubmit="return validate();">  
+            <fieldset>
+                <input type=\'hidden\' name=\'action\' value=\'submit-recaptcha-form\' />
+                <table width="100%" cellpadding="0" cellspacing="0" class="form-table">                                    
+                    <tr>
+<!--                        <td>Admin email</td>-->
+                        <td>Admin email : <br/><input type="text" id="call_back_admin_email" name="call_back_admin_email" value="'.$call_back_admin_email.'"></input></td>
+                    </tr>
+                    <tr>
+<!--                        <td>Recaptcha site key</td>-->
+                        <td>Recaptcha site key: <br/><input type="text" id="site_key" name="site_key" size="40" value="'. $site_key.'"></input></td>
+                    </tr>
+                    <tr>
+<!--                        <td>Recaptcha secret</td>-->
+                        <td>Recaptcha secret: <br/> <input type="text" id="secret" name="secret" size="40" value="'.$secret.'"></input></td>
+                    </tr>                                                                 
+                    <tr>                                
+                        <td ><input class="button-primary" type="submit" id="submit_form_settings" name="submit_form_settings"></input></td>
+                    </tr>
+                </table>
+            </fieldset>
+        </form>
+    </div>             </div></br>';
+    //$output2 ='<div class="info_class">See this link to view <a href="https://developers.google.com/structured-data/customize/social-profiles" target="_blank">Googles Description</a></div>';
+    echo $output.$output1;
 }
 ?>
