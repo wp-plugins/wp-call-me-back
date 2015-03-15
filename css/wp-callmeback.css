@@ -456,3 +456,12 @@ td.rr_admin_review_content_container
     border:1px solid #8ed9f6;
     padding: 10px;
 }
+.info_class{
+    background: none repeat scroll 0 0 #82CAFA;    
+    display: inline-block;    
+    padding:10px;
+    width: 100%;
+}        
+.wp-admin select {
+    width: 190px;
+} 

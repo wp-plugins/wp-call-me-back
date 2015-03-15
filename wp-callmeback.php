@@ -5,7 +5,7 @@ ob_start();
  * Plugin Name: Call me back widget
  * Plugin URI: http://pigeonhut.com
  * Description: Request call me back widget by PigeonHUT
- * Version: 1.20
+ * Version: 2.01
  * Author: Jody Nesbitt (WebPlugins)
  * Author URI: http://webplugins.co.uk
  *
@@ -87,7 +87,27 @@ function rcbTabs() {
         'request-call-back' => 'Contact Requests',
         'settings-options' => 'Settings'
     );
-    echo admin_tabs($my_plugin_tabs);
+    echo admin_tabs_callmeback($my_plugin_tabs);
+}
+
+function admin_tabs_callmeback($tabs, $current = NULL) {
+    if (is_null($current)) {
+        if (isset($_GET['page'])) {
+            $current = $_GET['page'];
+        }
+    }
+    $content = '';
+    $content .= '<h2 class="nav-tab-wrapper">';
+    foreach ($tabs as $location => $tabname) {
+        if ($current == $location) {
+            $class = ' nav-tab-active';
+        } else {
+            $class = '';
+        }
+        $content .= '<a class="nav-tab' . $class . '" href="?page=' . $location . '">' . $tabname . '</a>';
+    }
+    $content .= '</h2>';
+    return $content;
 }
 
 function wpgcallmeback_style() {
