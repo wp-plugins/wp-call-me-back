@@ -5,7 +5,7 @@ ob_start();
  * Plugin Name: Call me back widget
  * Plugin URI: http://pigeonhut.com
  * Description: Request call me back widget by PigeonHUT
- * Version: 2.01
+ * Version: 2.02
  * Author: Jody Nesbitt (WebPlugins)
  * Author URI: http://webplugins.co.uk
  *
@@ -30,8 +30,9 @@ if (!class_exists('NMRichReviewsAdminHelper')) {
 }
 // Register API keys at https://www.google.com/recaptcha/admin
 $get_option_details = unserialize(get_option('rcb_settings_options'));
-$siteKey = $get_option_details['site_key'];
-$secret = $get_option_details['secret'];
+$get_recaptcha_details=unserialize(get_option('rcb_recaptcha_options'));
+$siteKey = $get_recaptcha_details['site_key'];
+$secret = $get_recaptcha_details['secret'];
 // reCAPTCHA supported 40+ languages listed here: https://developers.google.com/recaptcha/docs/language
 $lang = "en";
 
@@ -606,6 +607,7 @@ function callSettings() {
     $picker4 = '';
     $call_back_admin_email = '';
     $get_option_details = unserialize(get_option('rcb_settings_options'));
+    $get_recaptcha_details=unserialize(get_option('rcb_recaptcha_options'));
     if (isset($get_option_details['picker1']) && $get_option_details['picker1'] != '')
         $picker1 = $get_option_details['picker1'];
     if (isset($get_option_details['picker2']) && $get_option_details['picker2'] != '')
@@ -614,12 +616,12 @@ function callSettings() {
         $picker3 = $get_option_details['picker3'];
     if (isset($get_option_details['picker4']) && $get_option_details['picker4'] != '')
         $picker4 = $get_option_details['picker4'];
-    if (isset($get_option_details['call_back_admin_email']) && $get_option_details['call_back_admin_email'] != '')
-        $call_back_admin_email = $get_option_details['call_back_admin_email'];
-    if (isset($get_option_details['site_key']) && $get_option_details['site_key'] != '')
-        $site_key = $get_option_details['site_key'];
-    if (isset($get_option_details['secret']) && $get_option_details['secret'] != '')
-        $secret = $get_option_details['secret'];
+    if (isset($get_recaptcha_details['call_back_admin_email']) && $get_recaptcha_details['call_back_admin_email'] != '')
+        $call_back_admin_email = $get_recaptcha_details['call_back_admin_email'];
+    if (isset($get_recaptcha_details['site_key']) && $get_recaptcha_details['site_key'] != '')
+        $site_key = $get_recaptcha_details['site_key'];
+    if (isset($get_recaptcha_details['secret']) && $get_recaptcha_details['secret'] != '')
+        $secret = $get_recaptcha_details['secret'];
     if (isset($get_option_details['auto-responder']) && $get_option_details['auto-responder'] != '')
         $getResponder = $get_option_details['auto-responder'];
     if (isset($get_option_details['subject']) && $get_option_details['subject'] != '')
@@ -906,7 +908,9 @@ class wpgcallmeback_Widget extends WP_Widget {
      */
     function widget($args, $instance) {
         global $wpdb;
-        $get_option_details = unserialize(get_option('rcb_settings_options'));
+        $get_option_details = unserialize(get_option('rcb_settings_options'));  
+        $get_recaptcha_details=unserialize(get_option('rcb_recaptcha_options'));
+        
         extract($args);
         /* Our variables from the widget settings. */
         $title = apply_filters('widget_title', $instance['wpgtitle']);
@@ -925,8 +929,8 @@ class wpgcallmeback_Widget extends WP_Widget {
         if ($show_form)
             if (isset($_POST['submit'])) {
                 //echo '<pre>'; print_r($_POST); exit;
-                $siteKey = $get_option_details['site_key'];
-                $secret = $get_option_details['secret'];
+                $siteKey = $get_recaptcha_details['site_key'];
+                $secret = $get_recaptcha_details['secret'];
 // reCAPTCHA supported 40+ languages listed here: https://developers.google.com/recaptcha/docs/language
                 $lang = "en";
 // The response from reCAPTCHA
@@ -1047,7 +1051,7 @@ class wpgcallmeback_Widget extends WP_Widget {
                                                 this.value = 'Message'
                                             }"  size="17" />
                                        <?php } ?>
-                                <div class="g-recaptcha" style="width:100%; display: block;" data-theme="light" data-type="image" data-sitekey="<?php echo $get_option_details['site_key']; ?>"></div>                                                                                
+                                <div class="g-recaptcha" style="width:100%; display: block;" data-theme="light" data-type="image" data-sitekey="<?php echo $get_recaptcha_details['site_key']; ?>"></div>                                                                                
                                 <input name="submit" type="submit" style="background-color: <?php echo $get_option_details['picker3']; ?>" class="callmeback" value="Call me back" />
                             </form></div>
                     </div>
