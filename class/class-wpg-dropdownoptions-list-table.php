@@ -36,8 +36,8 @@ class Wpg_DropdownOptions_List_Table extends WP_List_Table_Copy {
         }
         //echo '<pre>'; print_r($this->example_data);
         parent::__construct(array(
-            'singular' => __('option', 'wpgcallbacklist'), //singular name of the listed records
-            'plural' => __('options', 'wpgcallbacklist'), //plural name of the listed records
+            'singular' => __('dropdown', 'wpgcallbacklist'), //singular name of the listed records
+            'plural' => __('dropdowns', 'wpgcallbacklist'), //plural name of the listed records
             'ajax' => false        //does this table support ajax?
         ));
 
@@ -79,7 +79,7 @@ class Wpg_DropdownOptions_List_Table extends WP_List_Table_Copy {
 
     function get_columns() {
         $columns = array(
-            'cb' => '<input type="checkbox" />',
+            'cbn' => '<input type="checkbox" />',
             'option' => __('Option', 'wpgcallbacklist'),    
             'Action' => __('Action', 'wpgcallbacklist'),
         );
@@ -121,11 +121,11 @@ class Wpg_DropdownOptions_List_Table extends WP_List_Table_Copy {
       }
       } 
 
-    function column_cb($item) {
+    function column_cbn($item) {
         return sprintf(
                  '<input type="checkbox" name="%1$s[]" value="%2$s" />',
                 /* $1%s */ $this->_args['singular'], //Let's simply repurpose the table's singular label ("movie")
-                /* $2%s */ $item['ID']                //The value of the checkbox should be the record's id
+                /* $2%s */ $item['id']                //The value of the checkbox should be the record's id
         );
     }
 

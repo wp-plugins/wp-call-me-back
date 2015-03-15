@@ -5,7 +5,7 @@ ob_start();
  * Plugin Name: Call me back widget
  * Plugin URI: http://pigeonhut.com
  * Description: Request call me back widget by PigeonHUT
- * Version: 1.19
+ * Version: 1.20
  * Author: Jody Nesbitt (WebPlugins)
  * Author URI: http://webplugins.co.uk
  *
@@ -153,41 +153,43 @@ function listOptionsTwo() {
         }
     </style>
     <div class="wrap">                               
-        <h2><?php _e('Dropdown Options2', 'wpre'); ?> <a class="add-new-h2" href="<?php echo admin_url() ?>admin.php?page=rcb-options-two">Add New</a></h2> 
+        <h2><?php _e('Dropdown Options 2', 'wpre'); ?> <a class="add-new-h2" href="<?php echo admin_url() ?>admin.php?page=rcb-options-two">Add New</a></h2> 
         <?php _statusMessage('Dropdown Options2'); ?>
         <div id="poststuff" class="metabox-holder ppw-settings">
-            <div class="postbox" id="ppw_global_postbox">                           
-                <div class="inside">  
-                    <form id="size" name="options" method="post" onsubmit="return submitcount('options');" action="">
-                        <?php
-                        if ($_REQUEST['action'] == 'delete') {
-                            $del = $_REQUEST['options'];
-                            if ($del != '') {
-                                $idsToDelete = implode($del, ',');
-                                global $wpdb;
-                                $wpdb->query($wpdb->prepare("DELETE FROM " . $wpdb->prefix . "drop_down_options WHERE id IN ($idsToDelete)"));
-                                if ($wpdb->rows_affected > 0) {
-                                    $_SESSION['area_status'] = 'deletesuccess';
-                                    wp_redirect(admin_url('admin.php?page=list-options-two&paged="' . $_GET['paged'] . '"'));
-                                    exit;
-                                }
+
+            <div class="inside">  
+                <form id="options" name="options" method="post" action="">
+                    <input type="hidden" name="action" value="delete"/>
+                    <?php
+                    print_r($_REQUEST);
+                    if ($_REQUEST['action'] == 'delete') {
+                        $del = $_REQUEST['options'];
+                        if ($del != '') {
+                            $idsToDelete = implode($del, ',');
+                            global $wpdb;
+                            $wpdb->query($wpdb->prepare("DELETE FROM " . $wpdb->prefix . "drop_down_options WHERE id IN ($idsToDelete)"));
+                            if ($wpdb->rows_affected > 0) {
+                                $_SESSION['area_status'] = 'deletesuccess';
+                                wp_redirect(admin_url('admin.php?page=settings-options&paged="' . $_GET['paged'] . '"'));
+                                exit;
+                            }
+                        } else {
+                            $_SESSION['area_status'] = 'deletefailed';
+                            if ($_GET['paged'] != '') {
+                                wp_redirect(admin_url('admin.php?page=settings-options&paged="' . $_GET['paged'] . '"'));
                             } else {
-                                $_SESSION['area_status'] = 'deletefailed';
-                                if ($_GET['paged'] != '') {
-                                    wp_redirect(admin_url('admin.php?page=list-options-two&paged="' . $_GET['paged'] . '"'));
-                                } else {
-                                    wp_redirect(admin_url('admin.php?page=list-options-two'));
-                                }
+                                wp_redirect(admin_url('admin.php?page=settings-options'));
                             }
                         }
+                    }
 
-                        $myListTable = new Wpg_DropdownOptions_List_Table();
-                        $myListTable->prepare_items();
-                        $myListTable->display();
-                        ?>
-                    </form>      
-                </div>
-            </div>           
+                    $myListTable = new Wpg_DropdownOptions_List_Table();
+                    $myListTable->prepare_items();
+                    $myListTable->display();
+                    ?>
+                </form>      
+            </div>
+
         </div>
     </div><?php
 }
@@ -239,7 +241,7 @@ function rcbOptionsTwo() {
         }
     </style>
     <div class="wrap">  
-        <h1> <?php echo _e('Add Dropdown options2', 'cqp'); ?></h1>       
+        <h1> <?php echo _e('Add Dropdown options 2', 'cqp'); ?></h1>       
         <div id="poststuff" class="metabox-holder ppw-settings">
             <div class="postbox" id="ppw_global_postbox">                 
                 <div class="inside">                               
@@ -290,10 +292,10 @@ function rcbDeleteOptionsTwo() {
         $_SESSION['area_status'] = 'deletefailed';
     }
     if ($_GET['paged'] != '') {
-        wp_redirect(admin_url('admin.php?page=list-options-two&paged="' . $_GET['paged'] . '"'));
+        wp_redirect(admin_url('admin.php?page=settings-options&paged="' . $_GET['paged'] . '"'));
         exit;
     }
-    wp_redirect(admin_url('admin.php?page=list-options-two'));
+    wp_redirect(admin_url('admin.php?page=settings-options'));
 }
 
 function saveDropdownOptions() {
@@ -313,10 +315,10 @@ function saveDropdownOptions() {
             }
         }
         if ($_POST['paged'] != '') {
-            wp_redirect(admin_url('admin.php?page=list-options-two&paged="' . $_POST['paged'] . '"'));
+            wp_redirect(admin_url('admin.php?page=settings-options&paged="' . $_POST['paged'] . '"'));
             exit;
         }
-        wp_redirect(admin_url('admin.php?page=list-options-two'));
+        wp_redirect(admin_url('admin.php?page=settings-options'));
     }
 }
 
@@ -330,10 +332,10 @@ function rcbDeleteBestTime() {
         $_SESSION['area_status'] = 'deletefailed';
     }
     if ($_GET['paged'] != '') {
-        wp_redirect(admin_url('admin.php?page=list-best-time&paged="' . $_GET['paged'] . '"'));
+        wp_redirect(admin_url('admin.php?page=settings-options&paged="' . $_GET['paged'] . '"'));
         exit;
     }
-    wp_redirect(admin_url('admin.php?page=list-best-time'));
+    wp_redirect(admin_url('admin.php?page=settings-options'));
 }
 
 function listBestTime() {
@@ -374,42 +376,39 @@ function listBestTime() {
         }
     </style>
     <div class="wrap">                               
-        <h2><?php _e('Dropdown Options', 'wpre'); ?> <a class="add-new-h2" href="<?php echo admin_url() ?>admin.php?page=rcb-best-time">Add New</a></h2> 
-        <?php _statusMessage('Dropdown Options'); ?>
-        <div id="poststuff" class="metabox-holder ppw-settings">
-            <div class="postbox" id="ppw_global_postbox">                           
-                <div class="inside">  
-                    <form id="size" name="best_time" method="post" onsubmit="return submitcount('size');" action="">
-                        <?php
-                        if ($_REQUEST['action'] == 'delete') {
-                            $del = $_REQUEST['best_time'];
-                            if ($del != '') {
-                                $idsToDelete = implode($del, ',');
-                                global $wpdb;
-                                $wpdb->query($wpdb->prepare("DELETE FROM " . $wpdb->prefix . "call_back_best_time WHERE id IN ($idsToDelete)"));
-                                if ($wpdb->rows_affected > 0) {
-                                    $_SESSION['area_status'] = 'deletesuccess';
-                                    wp_redirect(admin_url('admin.php?page=list-best-time&paged="' . $_GET['paged'] . '"'));
-                                    exit;
-                                }
+        <h2><?php _e('Best Time', 'wpre'); ?> <a class="add-new-h2" href="<?php echo admin_url() ?>admin.php?page=rcb-best-time">Add New</a></h2> 
+        <?php _statusMessage('Best Time'); ?>        
+            <div class="inside">  
+                <form id="best_time" name="best_time" method="post" action="">
+                    <input type="hidden" name="action" value="delete"/>
+                    <?php
+                    if ($_REQUEST['action'] == 'delete') {
+                        $del = $_REQUEST['best_time'];
+                        if ($del != '') {
+                            $idsToDelete = implode($del, ',');
+                            global $wpdb;
+                            $wpdb->query($wpdb->prepare("DELETE FROM " . $wpdb->prefix . "call_back_best_time WHERE id IN ($idsToDelete)"));
+                            if ($wpdb->rows_affected > 0) {
+                                $_SESSION['area_status'] = 'deletesuccess';
+                                wp_redirect(admin_url('admin.php?page=settings-options&paged="' . $_GET['paged'] . '"'));
+                                exit;
+                            }
+                        } else {
+                            $_SESSION['area_status'] = 'deletefailed';
+                            if ($_GET['paged'] != '') {
+                                wp_redirect(admin_url('admin.php?page=settings-options&paged="' . $_GET['paged'] . '"'));
                             } else {
-                                $_SESSION['area_status'] = 'deletefailed';
-                                if ($_GET['paged'] != '') {
-                                    wp_redirect(admin_url('admin.php?page=list-best-time&paged="' . $_GET['paged'] . '"'));
-                                } else {
-                                    wp_redirect(admin_url('admin.php?page=list-best-time'));
-                                }
+                                wp_redirect(admin_url('admin.php?page=settings-options'));
                             }
                         }
+                    }
 
-                        $myListTable = new Wpg_Besttime_List_Table();
-                        $myListTable->prepare_items();
-                        $myListTable->display();
-                        ?>
-                    </form>      
-                </div>
-            </div>           
-        </div>
+                    $myListTable = new Wpg_Besttime_List_Table();
+                    $myListTable->prepare_items();
+                    $myListTable->display();
+                    ?>
+                </form>      
+            </div>                 
     </div><?php
 }
 
@@ -517,10 +516,10 @@ function saveBestTime() {
             }
         }
         if ($_POST['paged'] != '') {
-            wp_redirect(admin_url('admin.php?page=list-best-time&paged="' . $_POST['paged'] . '"'));
+            wp_redirect(admin_url('admin.php?page=settings-options&paged="' . $_POST['paged'] . '"'));
             exit;
         }
-        wp_redirect(admin_url('admin.php?page=list-best-time'));
+        wp_redirect(admin_url('admin.php?page=settings-options'));
     }
 }
 
@@ -608,76 +607,96 @@ function callSettings() {
     if (isset($get_option_details['dropdown-two']) && $get_option_details['dropdown-two'] != '')
         $dropdown = $get_option_details['dropdown-two'];
     ?>
-
+    <script>
+        jQuery(document).ready(function () {
+            jQuery("body").addClass("wps-admin-page");
+            // binds form submission and fields to the validation engine          
+            jQuery(".wps-postbox-container .handlediv, .wps-postbox-container .hndle").on("click", function (n) {
+                return n.preventDefault(), jQuery(this).parent().toggleClass("closed");
+            });
+        });
+    </script>
     <div class="wrap">  
     <!--        <h1> <?php echo _e('Settings and Options', 'cqp'); ?></h1>-->
         <?php _statusMessage('Settings and Options'); ?>
         <div id="poststuff" class="metabox-holder ppw-settings">
-            <div class="postbox" id="ppw_global_postbox">                 
-                <div class="inside">                               
-                    <div>
-                        <form id="callback_settings" method="post" action="<?php echo get_admin_url() ?>admin-post.php" onsubmit="return validate();">  
-                            <fieldset>
-                                <input type='hidden' name='action' value='submit-callback-settings-form' />
-                                <table width="600px" cellpadding="0" cellspacing="0" class="form-table">
-                                    <tr>
-                                        <td>Top background color : </td>
-                                        <td><input readonly type="text" id="picker1" name="picker1" style="border-color:<?php echo $picker1; ?>" value="<?php echo $picker1; ?>"></input></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Bottom background color : </td>
-                                        <td><input readonly type="text" id="picker2" name="picker2" style="border-color:<?php echo $picker2; ?>" value="<?php echo $picker2; ?>"></input></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Callback button background color : </td>
-                                        <td><input readonly type="text" id="picker3" name="picker3" style="border-color:<?php echo $picker3; ?>" value="<?php echo $picker3; ?>"></input></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Help button background color : </td>
-                                        <td><input readonly type="text" id="picker4" name="picker4" style="border-color:<?php echo $picker4; ?>" value="<?php echo $picker4; ?>"></input></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Admin email</td>
-                                        <td><input type="text" id="call_back_admin_email" name="call_back_admin_email" value="<?php echo $call_back_admin_email; ?>"></input></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Recaptcha site key</td>
-                                        <td><input type="text" id="site_key" name="site_key" size="40" value="<?php echo $site_key; ?>"></input></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Recaptcha secret</td>
-                                        <td><input type="text" id="secret" name="secret" size="40" value="<?php echo $secret; ?>"></input></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Mail subject</td>
-                                        <td><input type="text" id="subject" name="subject" size="40" value="<?php echo $subject; ?>"></input></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Auto-responder to user</td>
-                                        <td><textarea id="auto-responder" name="auto-responder" cols="90" rows="15"><?php echo $getResponder; ?></textarea></td>
-                                    </tr> 
-                                    <tr>
-                                        <td>Show dropdown option two</td>
-                                        <?php
-                                        if ($dropdown == 1) {
-                                            $checked = 'checked="checked"';
-                                        } else {
-                                            $checked = '';
-                                        }
-                                        ?>
-                                        <td><input <?php echo $checked; ?> type="checkbox" id="dropdown-two" name="dropdown-two" size="40" value="1"></input></td>
-                                    </tr> 
-                                    <tr>                                
-                                        <td colspan="2"><input class="button-primary" type="submit" id="submit_form_settings" name="submit_form_settings"></input></td>
-                                    </tr>
-                                </table>
-                            </fieldset>
-                        </form>
-                    </div>                         
-                </div>
-            </div>           
-        </div>
+            <div class="left-side">                 
+                <?php
+                NMRichReviewsAdminHelper::render_container_open('content-container');
+                NMRichReviewsAdminHelper::render_postbox_open('Settings');
+                ?>
+                <div>
+                    <form id="callback_settings" method="post" action="<?php echo get_admin_url() ?>admin-post.php" onsubmit="return validate();">  
+                        <fieldset>
+                            <input type='hidden' name='action' value='submit-callback-settings-form' />
+                            <table width="600px" cellpadding="0" cellspacing="0" class="form-table">
+                                <tr>
+                                    <td>Top background color : </td>
+                                    <td><input readonly type="text" id="picker1" name="picker1" style="border-color:<?php echo $picker1; ?>" value="<?php echo $picker1; ?>"></input></td>
+                                </tr>
+                                <tr>
+                                    <td>Bottom background color : </td>
+                                    <td><input readonly type="text" id="picker2" name="picker2" style="border-color:<?php echo $picker2; ?>" value="<?php echo $picker2; ?>"></input></td>
+                                </tr>
+                                <tr>
+                                    <td>Callback button background color : </td>
+                                    <td><input readonly type="text" id="picker3" name="picker3" style="border-color:<?php echo $picker3; ?>" value="<?php echo $picker3; ?>"></input></td>
+                                </tr>
+                                <tr>
+                                    <td>Help button background color : </td>
+                                    <td><input readonly type="text" id="picker4" name="picker4" style="border-color:<?php echo $picker4; ?>" value="<?php echo $picker4; ?>"></input></td>
+                                </tr>                                
+                                <tr>
+                                    <td>Mail subject</td>
+                                    <td><input type="text" id="subject" name="subject" size="40" value="<?php echo $subject; ?>"></input></td>
+                                </tr>
+                                <tr>
+                                    <td>Auto-responder to user</td>
+                                    <td><textarea id="auto-responder" name="auto-responder" cols="90" rows="15"><?php echo $getResponder; ?></textarea></td>
+                                </tr> 
+                                <tr>
+                                    <td>Show dropdown option two</td>
+                                    <?php
+                                    if ($dropdown == 1) {
+                                        $checked = 'checked="checked"';
+                                    } else {
+                                        $checked = '';
+                                    }
+                                    ?>
+                                    <td><input <?php echo $checked; ?> type="checkbox" id="dropdown-two" name="dropdown-two" size="40" value="1"></input></td>
+                                </tr> 
+                                <tr>                                
+                                    <td colspan="2"><input class="button-primary" type="submit" id="submit_form_settings" name="submit_form_settings"></input></td>
+                                </tr>
+                            </table>
+                        </fieldset>
+                    </form>
+                </div>  
+                <?php
+                NMRichReviewsAdminHelper::render_postbox_close();
+                NMRichReviewsAdminHelper::render_container_close();
 
+//                NMRichReviewsAdminHelper::render_container_open('content-container');
+//                NMRichReviewsAdminHelper::render_postbox_open('Best Time');
+//                listBestTime();
+//                NMRichReviewsAdminHelper::render_postbox_close();
+//                NMRichReviewsAdminHelper::render_container_close();
+
+                NMRichReviewsAdminHelper::render_container_open('content-container');
+                NMRichReviewsAdminHelper::render_postbox_open('Dropdown Options 2');
+                listOptionsTwo();
+                NMRichReviewsAdminHelper::render_postbox_close();
+                NMRichReviewsAdminHelper::render_container_close();
+
+                NMRichReviewsAdminHelper::render_container_open('content-container');
+                NMRichReviewsAdminHelper::render_postbox_open('About');
+                callback_about_us();
+                NMRichReviewsAdminHelper::render_postbox_close();
+                NMRichReviewsAdminHelper::render_container_close();
+                ?>
+            </div>      
+        </div>
+        <?php displayRightContactRequest(); ?>
     </div>
     <script>
         function validate() {
@@ -800,15 +819,15 @@ function recaptchaHtml() {
                 <input type='hidden' name='action' value='submit-recaptcha-form' />
                 <table width="100%" cellpadding="0" cellspacing="0" class="form-table">                                    
                     <tr>
-<!--                        <td>Admin email</td>-->
+    <!--                        <td>Admin email</td>-->
                         <td>Admin email : <br/><input type="text" id="call_back_admin_email" name="call_back_admin_email" value="<?php echo $call_back_admin_email; ?>"></input></td>
                     </tr>
                     <tr>
-<!--                        <td>Recaptcha site key</td>-->
+    <!--                        <td>Recaptcha site key</td>-->
                         <td>Recaptcha site key: <br/><input type="text" id="site_key" name="site_key" size="40" value="<?php echo $site_key; ?>"></input></td>
                     </tr>
                     <tr>
-<!--                        <td>Recaptcha secret</td>-->
+    <!--                        <td>Recaptcha secret</td>-->
                         <td>Recaptcha secret: <br/> <input type="text" id="secret" name="secret" size="40" value="<?php echo $secret; ?>"></input></td>
                     </tr>                                                                 
                     <tr>                                
@@ -974,17 +993,17 @@ class wpgcallmeback_Widget extends WP_Widget {
                         <div class="wpginfo"><?php echo $wpginfo; ?></div>
                         <div class="wpgform"><form action="#" method="post" enctype="application/x-www-form-urlencoded" name="callbackwidget">
                                 <input name="rname" type="text" value="Name"  onclick="this.value = '';" onblur="if (this.value == '') {
-                                                            this.value = 'Name'
-                                                        }" size="17" />
+                                            this.value = 'Name'
+                                        }" size="17" />
                                 <input name="rnumber" type="text" value="Number"  onclick="this.value = '';"  onblur="if (this.value == '') {
-                                                            this.value = 'Number'
-                                                        }"  size="17" />
+                                            this.value = 'Number'
+                                        }"  size="17" />
                                 <input name="remail" type="text" value="Email"  onclick="this.value = '';"  onblur="if (this.value == '') {
-                                                            this.value = 'Email'
-                                                        }"  size="17" />
+                                            this.value = 'Email'
+                                        }"  size="17" />
                                 <input name="postcode" type="text" value="Postcode"  onclick="this.value = '';"  onblur="if (this.value == '') {
-                                                            this.value = 'Postcode'
-                                                        }"  size="17" />
+                                            this.value = 'Postcode'
+                                        }"  size="17" />
                                 <select class="wpgselect" name="rtime" size="1">                                    
                                     <?php
                                     global $wpdb;
@@ -1005,8 +1024,8 @@ class wpgcallmeback_Widget extends WP_Widget {
                                         ?>                                                                       
                                     </select>
                                     <input name="message" type="text" value="Message"  onclick="this.value = '';"  onblur="if (this.value == '') {
-                                                                    this.value = 'Message'
-                                                                }"  size="17" />
+                                                this.value = 'Message'
+                                            }"  size="17" />
                                        <?php } ?>
                                 <div class="g-recaptcha" style="width:100%; display: block;" data-theme="light" data-type="image" data-sitekey="<?php echo $get_option_details['site_key']; ?>"></div>                                                                                
                                 <input name="submit" type="submit" style="background-color: <?php echo $get_option_details['picker3']; ?>" class="callmeback" value="Call me back" />
@@ -1122,7 +1141,7 @@ function callback_about_us() {
 }
 
 function callback_contact_request_info() {
-        session_start();
+    session_start();
     global $wpdb;
     $call_back_admin_email = '';
     $site_key = '';
@@ -1134,24 +1153,24 @@ function callback_contact_request_info() {
         $site_key = $get_option_details['site_key'];
     if (isset($get_option_details['secret']) && $get_option_details['secret'] != '')
         $secret = $get_option_details['secret'];
-    _statusMessage('Recaptcha settings'); 
+    _statusMessage('Recaptcha settings');
     $output = '<div style="background: none repeat scroll 0 0 #99ff99;display:block;padding: 10px;">Don\'t yet have a Google Recaptcha account ? <a href="http://www.google.com/recaptcha/intro/index.html" target="_blank">Signup Free</a></div></br>';
     $output1 = '<div class="info_class"><div>
-        <form id="callback_settings" method="post" action="'.get_admin_url().'admin-post.php" onsubmit="return validate();">  
+        <form id="callback_settings" method="post" action="' . get_admin_url() . 'admin-post.php" onsubmit="return validate();">  
             <fieldset>
                 <input type=\'hidden\' name=\'action\' value=\'submit-recaptcha-form\' />
                 <table width="100%" cellpadding="0" cellspacing="0" class="form-table">                                    
                     <tr>
 <!--                        <td>Admin email</td>-->
-                        <td>Admin email : <br/><input type="text" id="call_back_admin_email" name="call_back_admin_email" value="'.$call_back_admin_email.'"></input></td>
+                        <td>Admin email : <br/><input type="text" id="call_back_admin_email" name="call_back_admin_email" value="' . $call_back_admin_email . '"></input></td>
                     </tr>
                     <tr>
 <!--                        <td>Recaptcha site key</td>-->
-                        <td>Recaptcha site key: <br/><input type="text" id="site_key" name="site_key" size="40" value="'. $site_key.'"></input></td>
+                        <td>Recaptcha site key: <br/><input type="text" id="site_key" name="site_key" size="40" value="' . $site_key . '"></input></td>
                     </tr>
                     <tr>
 <!--                        <td>Recaptcha secret</td>-->
-                        <td>Recaptcha secret: <br/> <input type="text" id="secret" name="secret" size="40" value="'.$secret.'"></input></td>
+                        <td>Recaptcha secret: <br/> <input type="text" id="secret" name="secret" size="40" value="' . $secret . '"></input></td>
                     </tr>                                                                 
                     <tr>                                
                         <td ><input class="button-primary" type="submit" id="submit_form_settings" name="submit_form_settings"></input></td>
@@ -1161,6 +1180,6 @@ function callback_contact_request_info() {
         </form>
     </div>             </div></br>';
     //$output2 ='<div class="info_class">See this link to view <a href="https://developers.google.com/structured-data/customize/social-profiles" target="_blank">Googles Description</a></div>';
-    echo $output.$output1;
+    echo $output . $output1;
 }
 ?>

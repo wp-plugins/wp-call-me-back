@@ -403,7 +403,8 @@ td.rr_admin_review_content_container
 }
 .left-side{
     display:block;
-    float:left;            
+    float:left;  
+    width:100%
 }
 .right-side{
     display:block;

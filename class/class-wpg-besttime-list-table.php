@@ -125,7 +125,7 @@ class Wpg_Besttime_List_Table extends WP_List_Table_Copy {
         return sprintf(
                  '<input type="checkbox" name="%1$s[]" value="%2$s" />',
                 /* $1%s */ $this->_args['singular'], //Let's simply repurpose the table's singular label ("movie")
-                /* $2%s */ $item['ID']                //The value of the checkbox should be the record's id
+                /* $2%s */ $item['id']                //The value of the checkbox should be the record's id
         );
     }
 
@@ -136,7 +136,7 @@ class Wpg_Besttime_List_Table extends WP_List_Table_Copy {
         $this->_column_headers = array($columns, $hidden, $sortable);
         usort($this->example_data, array(&$this, 'usort_reorder'));
 
-        $per_page = 5;
+        $per_page = 10;
         $current_page = $this->get_pagenum();
         $total_items = count($this->example_data);
 
