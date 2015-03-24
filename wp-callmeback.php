@@ -5,7 +5,7 @@ ob_start();
  * Plugin Name: Call me back widget
  * Plugin URI: http://pigeonhut.com
  * Description: Request call me back widget by PigeonHUT
- * Version: 2.03
+ * Version: 2.04
  * Author: Jody Nesbitt (WebPlugins)
  * Author URI: http://webplugins.co.uk
  *
@@ -578,9 +578,32 @@ function callRequestCallBack() {
                 <?php
                 NMRichReviewsAdminHelper::render_container_open('content-container');
                 NMRichReviewsAdminHelper::render_postbox_open('Contact Request');
+               _statusMessage('Contact request');
+                echo '<form id="callback" name="callback" method="post" onsubmit="" action="">';
+                if ($_REQUEST['action'] == 'delete') {
+                    $del = $_REQUEST['callback'];
+                    if ($del != '') {
+                        $idsToDelete = implode($del, ',');
+                        global $wpdb;
+                        $wpdb->query($wpdb->prepare("DELETE FROM " . $wpdb->prefix . "request_a_call_back WHERE id IN ($idsToDelete)"));
+                        if ($wpdb->rows_affected > 0) {
+                            $_SESSION['area_status'] = 'deletesuccess';
+                            wp_redirect(admin_url('admin.php?page=request-call-back&paged="' . $_GET['paged'] . '"'));
+                            exit;
+                        }
+                    } else {
+                        $_SESSION['area_status'] = 'deletefailed';
+                        if ($_GET['paged'] != '') {
+                            wp_redirect(admin_url('admin.php?page=request-call-back&paged="' . $_GET['paged'] . '"'));
+                        } else {
+                            wp_redirect(admin_url('admin.php?page=request-call-back'));
+                        }
+                    }
+                }
                 $myListTable = new Wpg_Callback_List_Table();
                 $myListTable->prepare_items();
                 $myListTable->display();
+                echo '</form>';
                 NMRichReviewsAdminHelper::render_postbox_close();
                 NMRichReviewsAdminHelper::render_container_close();
 
@@ -916,7 +939,7 @@ class wpgcallmeback_Widget extends WP_Widget {
         global $wpdb;
         $get_option_details = unserialize(get_option('rcb_settings_options'));
         $get_recaptcha_details = unserialize(get_option('rcb_recaptcha_options'));
-        $get_color_picker=unserialize(get_option('rcb_settings_options_picker'));
+        $get_color_picker = unserialize(get_option('rcb_settings_options_picker'));
 
         extract($args);
         /* Our variables from the widget settings. */
@@ -952,7 +975,7 @@ class wpgcallmeback_Widget extends WP_Widget {
                     );
                 }
                 //if ($resp != null && $resp->success) {
-                $admin_email = $get_option_details['call_back_admin_email'];
+                $admin_email = $get_recaptcha_details['call_back_admin_email'];
                 if ($get_option_details['subject'] != '' && isset($get_option_details['subject'])) {
                     $setSubject = $get_option_details['subject'];
                 } else {
@@ -1024,17 +1047,17 @@ class wpgcallmeback_Widget extends WP_Widget {
                         <div class="wpginfo"><?php echo $wpginfo; ?></div>
                         <div class="wpgform"><form action="#" method="post" enctype="application/x-www-form-urlencoded" name="callbackwidget">
                                 <input name="rname" type="text" value="Name"  onclick="this.value = '';" onblur="if (this.value == '') {
-                                                            this.value = 'Name'
-                                                        }" size="17" />
+                                            this.value = 'Name'
+                                        }" size="17" />
                                 <input name="rnumber" type="text" value="Number"  onclick="this.value = '';"  onblur="if (this.value == '') {
-                                                            this.value = 'Number'
-                                                        }"  size="17" />
+                                            this.value = 'Number'
+                                        }"  size="17" />
                                 <input name="remail" type="text" value="Email"  onclick="this.value = '';"  onblur="if (this.value == '') {
-                                                            this.value = 'Email'
-                                                        }"  size="17" />
+                                            this.value = 'Email'
+                                        }"  size="17" />
                                 <input name="postcode" type="text" value="Postcode"  onclick="this.value = '';"  onblur="if (this.value == '') {
-                                                            this.value = 'Postcode'
-                                                        }"  size="17" />
+                                            this.value = 'Postcode'
+                                        }"  size="17" />
                                 <select class="wpgselect" name="rtime" size="1">                                    
                                     <?php
                                     global $wpdb;
@@ -1044,7 +1067,7 @@ class wpgcallmeback_Widget extends WP_Widget {
                                     }
                                     ?>                                                                       
                                 </select>
-                                    <?php if ($get_color_picker['dropdown-two'] == 1) { ?>
+                                <?php if ($get_color_picker['dropdown-two'] == 1) { ?>
                                     <select class="wpgselect" name="optiontwo" size="1">                                    
                                         <?php
                                         global $wpdb;
@@ -1055,9 +1078,9 @@ class wpgcallmeback_Widget extends WP_Widget {
                                         ?>                                                                       
                                     </select>
                                     <input name="message" type="text" value="Message"  onclick="this.value = '';"  onblur="if (this.value == '') {
-                                                                    this.value = 'Message'
-                                                                }"  size="17" />
-                <?php } ?>
+                                                this.value = 'Message'
+                                            }"  size="17" />
+                                       <?php } ?>
                                 <div class="g-recaptcha" style="width:100%; display: block;" data-theme="light" data-type="image" data-sitekey="<?php echo $get_recaptcha_details['site_key']; ?>"></div>                                                                                
                                 <input name="submit" type="submit" style="background-color: <?php echo $get_color_picker['picker3']; ?>" class="callmeback" value="Call me back" />
                             </form></div>
@@ -1246,7 +1269,7 @@ function callback_settings_info() {
     if (isset($get_option_details['picker3']) && $get_option_details['picker3'] != '')
         $picker3 = $get_option_details['picker3'];
     if (isset($get_option_details['picker4']) && $get_option_details['picker4'] != '')
-        $picker4 = $get_option_details['picker4'];    
+        $picker4 = $get_option_details['picker4'];
     if (isset($get_option_details['dropdown-two']) && $get_option_details['dropdown-two'] != '')
         $dropdown = $get_option_details['dropdown-two'];
     _statusMessage('Settings and Options');
