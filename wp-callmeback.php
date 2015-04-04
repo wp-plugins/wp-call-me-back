@@ -5,7 +5,7 @@ ob_start();
  * Plugin Name: Call me back widget
  * Plugin URI: http://pigeonhut.com
  * Description: Request call me back widget by PigeonHUT
- * Version: 2.04
+ * Version: 2.05
  * Author: Jody Nesbitt (WebPlugins)
  * Author URI: http://webplugins.co.uk
  *
@@ -629,6 +629,8 @@ function callSettings() {
     $picker3 = '';
     $picker4 = '';
     $call_back_admin_email = '';
+    $getResponder='';
+    $getEmailContent='';
     $get_option_details = unserialize(get_option('rcb_settings_options'));
     $get_recaptcha_details = unserialize(get_option('rcb_recaptcha_options'));
     if (isset($get_option_details['picker1']) && $get_option_details['picker1'] != '')
@@ -647,6 +649,8 @@ function callSettings() {
         $secret = $get_recaptcha_details['secret'];
     if (isset($get_option_details['auto-responder']) && $get_option_details['auto-responder'] != '')
         $getResponder = $get_option_details['auto-responder'];
+    if (isset($get_option_details['email-content']) && $get_option_details['email-content'] != '')
+        $getEmailContent = $get_option_details['email-content'];
     if (isset($get_option_details['subject']) && $get_option_details['subject'] != '')
         $subject = $get_option_details['subject'];
     if (isset($get_option_details['dropdown-two']) && $get_option_details['dropdown-two'] != '')
@@ -671,7 +675,7 @@ function callSettings() {
                 NMRichReviewsAdminHelper::render_postbox_open('Settings');
                 ?>
                 <div>
-                    <form id="callback_settings" method="post" action="<?php echo get_admin_url() ?>admin-post.php" onsubmit="return validate();">  
+                    <form id="callback_settings" method="post" action="<?php echo get_admin_url() ?>admin-post.php">  
                         <fieldset>
                             <input type='hidden' name='action' value='submit-callback-settings-form' />
                             <table width="600px" cellpadding="0" cellspacing="0" class="form-table">                                                           
@@ -683,6 +687,10 @@ function callSettings() {
                                     <td>Auto-responder to user</td>
                                     <td><textarea id="auto-responder" name="auto-responder" cols="90" rows="15"><?php echo $getResponder; ?></textarea></td>
                                 </tr>                                 
+                                <tr>
+                                    <td>Admin email content</td>
+                                    <td><textarea id="email-content" name="email-content" cols="90" rows="15"><?php echo $getEmailContent; ?></textarea></td>
+                                </tr> 
                                 <tr>                                
                                     <td colspan="2"><input class="button-primary" type="submit" id="submit_form_settings" name="submit_form_settings"></input></td>
                                 </tr>
@@ -769,6 +777,8 @@ function saveCallbackSettings() {
 //            $insertArray['secret'] = $_POST['secret'];
         if (isset($_POST['auto-responder']))
             $insertArray['auto-responder'] = $_POST['auto-responder'];
+         if (isset($_POST['email-content']))
+            $insertArray['email-content'] = $_POST['email-content'];
         if (isset($_POST['subject']))
             $insertArray['subject'] = $_POST['subject'];
 //        if (isset($_POST['dropdown-two']))
@@ -958,6 +968,7 @@ class wpgcallmeback_Widget extends WP_Widget {
         /* call back from start */
         if ($show_form)
             if (isset($_POST['submit'])) {
+                $getEmailContent = nl2br($get_option_details['email-content']);
                 //echo '<pre>'; print_r($_POST); exit;
                 $siteKey = $get_recaptcha_details['site_key'];
                 $secret = $get_recaptcha_details['secret'];
@@ -973,7 +984,7 @@ class wpgcallmeback_Widget extends WP_Widget {
                     $resp = $reCaptcha->verifyResponse(
                             $_SERVER["REMOTE_ADDR"], $_POST["g-recaptcha-response"]
                     );
-                }
+                }                
                 //if ($resp != null && $resp->success) {
                 $admin_email = $get_recaptcha_details['call_back_admin_email'];
                 if ($get_option_details['subject'] != '' && isset($get_option_details['subject'])) {
@@ -987,32 +998,46 @@ class wpgcallmeback_Widget extends WP_Widget {
                 $remail = $_POST['remail'];
                 $roption = $_POST['optiontwo'];
                 $rmessage = $_POST['message'];
+                $postcode=$_POST['postcode'];
+                $optiontwo='n/a';
+                $message='n/a';
                 $insertArray['name'] = $_POST['rname'];
                 $insertArray['number'] = $_POST['rnumber'];
                 $insertArray['email'] = $_POST['remail'];
                 $insertArray['besttime'] = $_POST['rtime'];
                 $insertArray['postcode'] = $_POST['postcode'];
-                if ($get_option_details['dropdown-two'] == 1) {
+                if ($get_color_picker['dropdown-two'] == 1) {
+                    $optiontwo=$_POST['optiontwo'];
+                    $message=$_POST['message'];
                     $insertArray['options'] = $_POST['optiontwo'];
                     $insertArray['message'] = $_POST['message'];
-                }
+                }                
                 $wpdb->insert($wpdb->prefix . "request_a_call_back", $insertArray, array('%s', '%s'));
-                $mailbody .= "Hello Admin, </br></br>
-                    Please see below for the enquiry received from one of our customer with details.</br>
-                    Name: $rname </br>
-                    Number: $rnumber</br>
-                    Best time to call: $rtime</br>
-                    Email: $remail</br>";
-                if ($get_option_details['dropdown-two'] == 1) {
-                    $mailbody .="Option: $roption</br> Message: $rmessage</br>";
-                }
-                $mailbody .="</br> Regards,<br/>" . get_bloginfo();
+                $getEmailContent= str_replace('{client name}',$rname,$getEmailContent);
+                $getEmailContent= str_replace('{number}',$rnumber,$getEmailContent);
+                $getEmailContent= str_replace('{timetocall}',$rtime,$getEmailContent);
+                $getEmailContent= str_replace('{email}',$remail,$getEmailContent);
+                $getEmailContent= str_replace('{postcode}',$postcode,$getEmailContent);
+                $getEmailContent= str_replace('{option}',$optiontwo,$getEmailContent);
+                $getEmailContent= str_replace('{message}',$message,$getEmailContent);
+                $getEmailContent= str_replace('{bloginfo}',get_bloginfo('name'),$getEmailContent);
+                
+//                $mailbody .= "Hello Admin, </br></br>
+//                    Please see below for the enquiry received from one of our customer with details.</br>
+//                    Name: $rname </br>
+//                    Number: $rnumber</br>
+//                    Best time to call: $rtime</br>
+//                    Email: $remail</br>";
+//                if ($get_color_picker['dropdown-two'] == 1) {
+//                    $mailbody .="Option: $roption</br> Message: $rmessage</br>";
+//                }
+//                $mailbody .="</br> Regards,<br/>" . get_bloginfo();
                 $headers = 'From: ' . $admin_email . "\r\n" .
                         'Reply-To: ' . $admin_email . "\r\n" .
                         'X-Mailer: PHP/' . phpversion();
                 $headers .= 'MIME-Version: 1.0' . "\n";
                 $headers .= 'Content-type: text/html; charset=iso-8859-1' . "\r\n";
-                if (mail($admin_email, $setSubject, $mailbody, $headers)) {
+                if (mail($admin_email, $setSubject, $getEmailContent, $headers)) {
                     
                 } else {
                     
@@ -1073,7 +1098,7 @@ class wpgcallmeback_Widget extends WP_Widget {
                                         global $wpdb;
                                         $getAllBestTimes = $wpdb->get_results('SELECT * FROM  ' . $wpdb->prefix . 'drop_down_options');
                                         foreach ($getAllBestTimes as $getAllBestTime) {
-                                            echo '<option value=' . $getAllBestTime->option . '>' . $getAllBestTime->option . '</option>';
+                                            echo '<option value="' . $getAllBestTime->option . '">' . $getAllBestTime->option . '</option>';
                                         }
                                         ?>                                                                       
                                     </select>

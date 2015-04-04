@@ -92,7 +92,7 @@ class Wpg_Callback_List_Table extends WP_List_Table_Copy {
     function get_columns() {
         $columns = array(
             'cbs' => '<input type="checkbox" />',
-            'subject' => __('Subject', 'wpgcallbacklist'),
+//            'subject' => __('Subject', 'wpgcallbacklist'),
             'name' => __('Name', 'wpgcallbacklist'),
             'number' => __('Number', 'wpgcallbacklist'),
             'email' => __('Email', 'wpgcallbacklist'),
