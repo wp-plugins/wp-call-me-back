@@ -5,7 +5,7 @@ ob_start();
  * Plugin Name: Call me back widget
  * Plugin URI: http://pigeonhut.com
  * Description: Request call me back widget by PigeonHUT
- * Version: 2.05
+ * Version: 2.07
  * Author: Jody Nesbitt (WebPlugins)
  * Author URI: http://webplugins.co.uk
  *
@@ -1076,10 +1076,10 @@ class wpgcallmeback_Widget extends WP_Widget {
                         var optiontwo = document.getElementById("optiontwo").value;
                         var message = document.getElementById("message").value;
                         if (rname == '' || rnumber == '' || remail == '' || postcode == '' || rtime == '' || optiontwo == '' || message == '' || rname == 'Name' || rnumber == 'Number' || remail == 'Email' || postcode == 'Postcode' || rtime == '' || optiontwo == '' || message == 'Message') {
-                            alert('Please enter all the fields.')
+                            alert('Please enter all the fields.');
                             return false;
                         }
-                        return false;
+                        return true;
                     }
                 </script>
                 <div class="wpgcallbackform">
