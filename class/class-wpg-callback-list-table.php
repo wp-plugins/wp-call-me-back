@@ -23,18 +23,18 @@ class Wpg_Callback_List_Table extends WP_List_Table_Copy {
             $this->example_data[$i]['besttime'] = stripslashes($List->besttime);
 //            if ($_GET['paged'] != '') {
 //                $actions = array(
-//                    'edit' => sprintf('<a href="?page=%s&action=%s&layout=%s&paged=%s">Edit</a>', 'create-template-layout', 'edit', $List->temp_id, $_GET['paged']),
+//                  //  'edit' => sprintf('<a href="?page=%s&action=%s&layout=%s&paged=%s">Edit</a>', 'create-template-layout', 'edit', $List->temp_id, $_GET['paged']),
 //                    'delete' => sprintf('<a href="?page=%s&action=%s&layout=%s&paged=%s" style="color:red">Delete</a>', 'delete-template-layout', 'delete', $List->temp_id, $_GET['paged']),
 //                );
 //            } else {
 //                $actions = array(
-//                    'edit' => sprintf('<a href="?page=%s&action=%s&layout=%s">Edit</a>', 'create-template-layout', 'edit', $List->temp_id),
+//                   // 'edit' => sprintf('<a href="?page=%s&action=%s&layout=%s">Edit</a>', 'create-template-layout', 'edit', $List->temp_id),
 //                    'delete' => sprintf('<a href="?page=%s&action=%s&layout=%s" style="color:red">Delete</a>', 'delete-template-layout', 'delete', $List->temp_id),
 //                );
 //            }
 //
-//            $actions = sprintf('%1$s %2$s', $item['layoutname'], $this->row_actions($actions));
-            //$this->example_data[$i]['Action'] = $actions;
+//            $actions = sprintf('%1$s %2$s', $item['callback'], $this->row_actions($actions));
+//            $this->example_data[$i]['Action'] = $actions;
 
             $i++;
         }
@@ -71,7 +71,7 @@ class Wpg_Callback_List_Table extends WP_List_Table_Copy {
             case 'number':
             case 'email':
             case 'besttime':
-                //case 'Action':
+                case 'Action':
                 return $item[$column_name];
             default:
                 return print_r($item, true); //Show the whole array for troubleshooting purposes
@@ -91,12 +91,13 @@ class Wpg_Callback_List_Table extends WP_List_Table_Copy {
 
     function get_columns() {
         $columns = array(
-            'cbs' => '<input type="checkbox" />',
+            'cb' => '<input type="checkbox" />',
 //            'subject' => __('Subject', 'wpgcallbacklist'),
             'name' => __('Name', 'wpgcallbacklist'),
             'number' => __('Number', 'wpgcallbacklist'),
             'email' => __('Email', 'wpgcallbacklist'),
-            'besttime' => __('Best time', 'wpgcallbacklist')
+            'besttime' => __('Best time', 'wpgcallbacklist'),
+//            'Action' => __('Action', 'wpgcallbacklist'),
         );
         return $columns;
     }
@@ -112,13 +113,13 @@ class Wpg_Callback_List_Table extends WP_List_Table_Copy {
         return ( $order === 'asc' ) ? $result : -$result;
     }
 
-    function column_cbs($item) {
-        return sprintf(
-                '<input type="checkbox" name="%1$s[]" value="%2$s" />',
-                /* $1%s */ $this->_args['singular'], //Let's simply repurpose the table's singular label ("movie")
-                /* $2%s */ $item['ID']                //The value of the checkbox should be the record's id
-        );
-    }
+//    function column_cb($item) {
+//        return sprintf(
+//                '<input type="checkbox" name="%1$s[]" value="%2$s" />',
+//                /* $1%s */ $this->_args['singular'], //Let's simply repurpose the table's singular label ("movie")
+//                /* $2%s */ $item['ID']                //The value of the checkbox should be the record's id
+//        );
+//    }
 
     function get_bulk_actions() {
         $actions = array(

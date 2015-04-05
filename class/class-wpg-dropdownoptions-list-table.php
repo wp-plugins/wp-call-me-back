@@ -79,7 +79,7 @@ class Wpg_DropdownOptions_List_Table extends WP_List_Table_Copy {
 
     function get_columns() {
         $columns = array(
-            'cbn' => '<input type="checkbox" />',
+            'cb' => '<input type="checkbox" />',
             'option' => __('Option', 'wpgcallbacklist'),    
             'Action' => __('Action', 'wpgcallbacklist'),
         );
@@ -121,7 +121,7 @@ class Wpg_DropdownOptions_List_Table extends WP_List_Table_Copy {
       }
       } 
 
-    function column_cbn($item) {
+    function column_cb($item) {
         return sprintf(
                  '<input type="checkbox" name="%1$s[]" value="%2$s" />',
                 /* $1%s */ $this->_args['singular'], //Let's simply repurpose the table's singular label ("movie")
