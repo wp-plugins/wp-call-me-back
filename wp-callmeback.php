@@ -5,7 +5,7 @@ ob_start();
  * Plugin Name: Call me back widget
  * Plugin URI: http://pigeonhut.com
  * Description: Request call me back widget by PigeonHUT
- * Version: 2.07
+ * Version: 2.08
  * Author: Jody Nesbitt (WebPlugins)
  * Author URI: http://webplugins.co.uk
  *
@@ -51,12 +51,20 @@ function initialize_table() {
             `number` varchar(255) default NULL,
             `postcode` bigint(20) default NULL,
             `email` varchar(255) default NULL,
-            `besttime` varchar(255) DEFAULT NULL, 
-            `options` varchar(255) DEFAULT NULL, 
-            `message` varchar(255) DEFAULT NULL, 
+            `besttime` varchar(255) DEFAULT NULL,            
             `dateCreated` timestamp NOT NULL,
             PRIMARY KEY (`id`))ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1;";
     $wpdb->query($sql);
+    $myColumn = $wpdb->get_row("SELECT * FROM " . $wpdb->prefix . "request_a_call_back");
+    if (!isset($myColumn->options)) {
+        $wpdb->query("ALTER TABLE " . $wpdb->prefix . "request_a_call_back ADD options varchar(255) DEFAULT NULL");
+    }
+    if (!isset($myColumn->message)) {
+        $wpdb->query("ALTER TABLE " . $wpdb->prefix . "request_a_call_back ADD message varchar(255) DEFAULT NULL");
+    }
+    if (!isset($myColumn->postcode)) {
+        $wpdb->query("ALTER TABLE " . $wpdb->prefix . "request_a_call_back ADD postcode varchar(255) DEFAULT NULL");
+    }
     $sql = "CREATE TABLE IF NOT EXISTS `" . $wpdb->prefix . "call_back_best_time" . "` (
             `id` bigint(20) unsigned NOT NULL auto_increment,
             `best_time` varchar(255) default NULL,                     
@@ -397,8 +405,8 @@ function listBestTime() {
         }
     </style>
     <div class="wrap">                               
-        <h2><?php _e('Best Time', 'wpre'); ?> <a class="add-new-h2" href="<?php echo admin_url() ?>admin.php?page=rcb-best-time">Add New</a></h2> 
-        <?php _statusMessage('Best Time'); ?>        
+        <h2><?php _e('Dropdown 1', 'wpre'); ?> <a class="add-new-h2" href="<?php echo admin_url() ?>admin.php?page=rcb-best-time">Add New</a></h2> 
+        <?php _statusMessage('Dropdown 1'); ?>        
         <div class="inside">  
             <form id="best_time" name="best_time" method="post" action="">
                 <input type="hidden" name="action" value="delete"/>
@@ -479,7 +487,7 @@ function rcbBestTime() {
         }
     </style>
     <div class="wrap">  
-        <h1> <?php echo _e('Add Best Time', 'cqp'); ?></h1>       
+        <h1> <?php echo _e('Add Dropdown 1', 'cqp'); ?></h1>       
         <div id="poststuff" class="metabox-holder ppw-settings">
             <div class="postbox" id="ppw_global_postbox">                 
                 <div class="inside">                               
@@ -491,7 +499,7 @@ function rcbBestTime() {
                                 <input type='hidden' name='paged' value='<?php echo $_GET['paged']; ?>' />
                                 <table width="600px" cellpadding="0" cellspacing="0" class="form-table">
                                     <tr>
-                                        <td>Best time </td>
+                                        <td>Dropdown 1 </td>
                                         <td><input type="text" id="best_time" name="best_time" value="<?php echo $getBestTime; ?>"></input></td>
                                     </tr>                                        
                                     <tr>                                
@@ -509,7 +517,7 @@ function rcbBestTime() {
         jQuery(document).ready(function () {
             jQuery('#submit_form_settings').click(function () {
                 if (jQuery('#best_time').val() == '') {
-                    alert('Please enter best time');
+                    alert('Please enter Dropdown 1');
                     return false;
                 } else {
                     return true;
@@ -692,8 +700,7 @@ function callSettings() {
                                 </tr>                                 
                                 <tr>
                                     <td>Admin email content</td>
-                                    <td><textarea id="email-content" name="email-content" cols="90" rows="15"><?php echo $getEmailContent; ?></textarea>
-                                        <p>Please use this short-code list to get dynamic data, <i>{client name}, {number}, {timetocall}, {email}, {postcode}, {option}, {message}, {bloginfo}</p>
+                                    <td><textarea id="email-content" name="email-content" cols="90" rows="15"><?php echo $getEmailContent; ?></textarea>                                        
                                     </td>
                                 </tr> 
                                 <tr>                                
@@ -990,75 +997,73 @@ class wpgcallmeback_Widget extends WP_Widget {
                             $_SERVER["REMOTE_ADDR"], $_POST["g-recaptcha-response"]
                     );
                 }
-                //if ($resp != null && $resp->success) {
-                $admin_email = $get_recaptcha_details['call_back_admin_email'];
-                if ($get_option_details['subject'] != '' && isset($get_option_details['subject'])) {
-                    $setSubject = $get_option_details['subject'];
-                } else {
-                    $setSubject = 'Call me back query from website';
-                }
-                $rname = $_POST['rname'];
-                $rnumber = $_POST['rnumber'];
-                $rtime = $_POST['rtime'];
-                $remail = $_POST['remail'];
-                $roption = $_POST['optiontwo'];
-                $rmessage = $_POST['message'];
-                $postcode = $_POST['postcode'];
-                $optiontwo = 'n/a';
-                $message = 'n/a';
-                $insertArray['name'] = $_POST['rname'];
-                $insertArray['number'] = $_POST['rnumber'];
-                $insertArray['email'] = $_POST['remail'];
-                $insertArray['besttime'] = $_POST['rtime'];
-                $insertArray['postcode'] = $_POST['postcode'];
-                if ($get_color_picker['dropdown-two'] == 1) {
-                    $optiontwo = $_POST['optiontwo'];
-                    $message = $_POST['message'];
-                    $insertArray['options'] = $_POST['optiontwo'];
-                    $insertArray['message'] = $_POST['message'];
-                }
-                $wpdb->insert($wpdb->prefix . "request_a_call_back", $insertArray, array('%s', '%s'));
-                $getEmailContent = str_replace('{client name}', $rname, $getEmailContent);
-                $getEmailContent = str_replace('{number}', $rnumber, $getEmailContent);
-                $getEmailContent = str_replace('{timetocall}', $rtime, $getEmailContent);
-                $getEmailContent = str_replace('{email}', $remail, $getEmailContent);
-                $getEmailContent = str_replace('{postcode}', $postcode, $getEmailContent);
-                $getEmailContent = str_replace('{option}', $optiontwo, $getEmailContent);
-                $getEmailContent = str_replace('{message}', $message, $getEmailContent);
-                $getEmailContent = str_replace('{bloginfo}', get_bloginfo('name'), $getEmailContent);
+                if ($resp != null && $resp->success) {
+                    $admin_email = $get_recaptcha_details['call_back_admin_email'];
+                    if ($get_option_details['subject'] != '' && isset($get_option_details['subject'])) {
+                        $setSubject = $get_option_details['subject'];
+                    } else {
+                        $setSubject = 'Call me back query from website';
+                    }
+                    $rname = $_POST['rname'];
+                    $rnumber = $_POST['rnumber'];
+                    $rtime = $_POST['rtime'];
+                    $remail = $_POST['remail'];
+                    $roption = $_POST['optiontwo'];
+                    $rmessage = $_POST['message'];
+                    $postcode = $_POST['postcode'];
+                    $optiontwo = 'n/a';
+                    $message = 'n/a';
+                    $insertArray['name'] = $_POST['rname'];
+                    $insertArray['number'] = $_POST['rnumber'];
+                    $insertArray['email'] = $_POST['remail'];
+                    $insertArray['besttime'] = $_POST['rtime'];
+                    $insertArray['postcode'] = $_POST['postcode'];
+                    if ($get_color_picker['dropdown-two'] == 1) {
+                        $optiontwo = $_POST['optiontwo'];
+                        $message = $_POST['message'];
+                        $insertArray['options'] = $_POST['optiontwo'];
+                        $insertArray['message'] = $_POST['message'];
+                    }
+                    $wpdb->insert($wpdb->prefix . "request_a_call_back", $insertArray, array('%s', '%s'));
+//                echo $wpdb->last_query;
+//                exit;
+                    $getEmailContent = str_replace('{client name}', $rname, $getEmailContent);
+                    $getEmailContent = str_replace('{number}', $rnumber, $getEmailContent);
+                    $getEmailContent = str_replace('{dropdown1}', $rtime, $getEmailContent);
+                    $getEmailContent = str_replace('{email}', $remail, $getEmailContent);
+                    $getEmailContent = str_replace('{postcode}', $postcode, $getEmailContent);
+                    $getEmailContent = str_replace('{option}', $optiontwo, $getEmailContent);
+                    $getEmailContent = str_replace('{message}', $message, $getEmailContent);
+                    $getEmailContent = str_replace('{bloginfo}', get_bloginfo('name'), $getEmailContent);
 
-//                $mailbody .= "Hello Admin, </br></br>
-//                    Please see below for the enquiry received from one of our customer with details.</br>
-//                    Name: $rname </br>
-//                    Number: $rnumber</br>
-//                    Best time to call: $rtime</br>
-//                    Email: $remail</br>";
-//                if ($get_color_picker['dropdown-two'] == 1) {
-//                    $mailbody .="Option: $roption</br> Message: $rmessage</br>";
-//                }
-//                $mailbody .="</br> Regards,<br/>" . get_bloginfo();
-                $headers = 'From: ' . $admin_email . "\r\n" .
-                        'Reply-To: ' . $admin_email . "\r\n" .
-                        'X-Mailer: PHP/' . phpversion();
-                $headers .= 'MIME-Version: 1.0' . "\n";
-                $headers .= 'Content-type: text/html; charset=iso-8859-1' . "\r\n";
-                if (mail($admin_email, $setSubject, $getEmailContent, $headers)) {
-                    
+                    $headers = 'From: ' . $admin_email . "\r\n" .
+                            'Reply-To: ' . $admin_email . "\r\n" .
+                            'X-Mailer: PHP/' . phpversion();
+                    $headers .= 'MIME-Version: 1.0' . "\n";
+                    $headers .= 'Content-type: text/html; charset=iso-8859-1' . "\r\n";
+                    if (mail($admin_email, $setSubject, $getEmailContent, $headers)) {
+                        
+                    } else {
+                        
+                    }
+                    $nl2br = nl2br($get_option_details['auto-responder']);
+                    $customer_mail_body = str_replace('{client name}', $rname, $nl2br);
+                    $customer_mail_body = str_replace('{number}', $rnumber, $customer_mail_body);
+                    $customer_mail_body = str_replace('{dropdown1}', $rtime, $customer_mail_body);
+                    $customer_mail_body = str_replace('{email}', $remail, $customer_mail_body);
+                    $customer_mail_body = str_replace('{postcode}', $postcode, $customer_mail_body);
+                    $customer_mail_body = str_replace('{option}', $optiontwo, $customer_mail_body);
+                    $customer_mail_body = str_replace('{message}', $message, $customer_mail_body);
+                    $customer_mail_body = str_replace('{bloginfo}', get_bloginfo('name'), $customer_mail_body);
+
+                    if (mail($_POST['remail'], $setSubject, $customer_mail_body, $headers)) {
+                        echo "Thanks for your request. We will call you during your requested timeslot!";
+                    } else {
+                        echo('Sorry there wa error processing your request. please try again');
+                    }
                 } else {
-                    
+                    echo 'Please enter correct captcha code';
                 }
-                $nl2br = nl2br($get_option_details['auto-responder']);
-                $customer_mail_body = str_replace('{name}', $rname, $nl2br);
-                $customer_mail_body = str_replace('{besttime}', $rtime, $customer_mail_body);
-                $customer_mail_body = str_replace('{siteadmin}', get_bloginfo(), $customer_mail_body);
-                if (mail($_POST['remail'], 'Thank you for contacting us!', $customer_mail_body, $headers)) {
-                    echo "Thanks for your request. We will call you during your requested timeslot!";
-                } else {
-                    echo('Sorry there wa error processing your request. please try again');
-                }
-//                } else {
-//                    echo 'Please enter correct captcha code';
-//                }
             } else {
                 ?>
                 <style>
@@ -1073,9 +1078,19 @@ class wpgcallmeback_Widget extends WP_Widget {
                         var remail = document.getElementById("remail").value;
                         var postcode = document.getElementById("postcode").value;
                         var rtime = document.getElementById("rtime").value;
-                        var optiontwo = document.getElementById("optiontwo").value;
-                        var message = document.getElementById("message").value;
-                        if (rname == '' || rnumber == '' || remail == '' || postcode == '' || rtime == '' || optiontwo == '' || message == '' || rname == 'Name' || rnumber == 'Number' || remail == 'Email' || postcode == 'Postcode' || rtime == '' || optiontwo == '' || message == 'Message') {
+                        var optiontwo = document.getElementById("optiontwo");
+                        if (typeof optiontwo != 'undefined' && optiontwo != null) {
+                            var newoption = document.getElementById("optiontwo").value;
+                        } else {
+                            newoption = 'val';
+                        }
+                        var message = document.getElementById("message");
+                        if (typeof message != 'undefined' && message != null) {
+                            var newmessage = document.getElementById("optiontwo").value;
+                        } else {
+                            newmessage = 'val';
+                        }
+                        if (rname == '' || rnumber == '' || remail == '' || postcode == '' || rtime == '' || newoption == '' || newmessage == '' || rname == 'Name' || rnumber == 'Number' || remail == 'Email' || postcode == 'Postcode' || newmessage == 'Message') {
                             alert('Please enter all the fields.');
                             return false;
                         }
@@ -1093,17 +1108,17 @@ class wpgcallmeback_Widget extends WP_Widget {
                         <div class="wpginfo"><?php echo $wpginfo; ?></div>
                         <div class="wpgform"><form action="#" method="post" enctype="application/x-www-form-urlencoded" name="callbackwidget" onsubmit="return validate();">
                                 <input name="rname" type="text" id="rname" value="Name"  onclick="this.value = '';" onblur="if (this.value == '') {
-                                                            this.value = 'Name'
-                                                        }" size="17" />
+                                            this.value = 'Name'
+                                        }" size="17" />
                                 <input name="rnumber" id="rnumber" type="text" value="Number"  onclick="this.value = '';"  onblur="if (this.value == '') {
-                                                            this.value = 'Number'
-                                                        }"  size="17" />
+                                            this.value = 'Number'
+                                        }"  size="17" />
                                 <input name="remail" id="remail" type="text" value="Email"  onclick="this.value = '';"  onblur="if (this.value == '') {
-                                                            this.value = 'Email'
-                                                        }"  size="17" />
+                                            this.value = 'Email'
+                                        }"  size="17" />
                                 <input name="postcode" id="postcode" type="text" value="Postcode"  onclick="this.value = '';"  onblur="if (this.value == '') {
-                                                            this.value = 'Postcode'
-                                                        }"  size="17" />
+                                            this.value = 'Postcode'
+                                        }"  size="17" />
                                 <select class="wpgselect" name="rtime" id="rtime" size="1">                                    
                                     <?php
                                     global $wpdb;
@@ -1124,8 +1139,8 @@ class wpgcallmeback_Widget extends WP_Widget {
                                         ?>                                                                       
                                     </select>
                                     <input name="message" id="message" type="text" value="Message"  onclick="this.value = '';"  onblur="if (this.value == '') {
-                                                                    this.value = 'Message'
-                                                                }"  size="17" />
+                                                this.value = 'Message'
+                                            }"  size="17" />
                                        <?php } ?>
                                 <div class="g-recaptcha" style="width:100%; display: block;" data-theme="light" data-type="image" data-sitekey="<?php echo $get_recaptcha_details['site_key']; ?>"></div>                                                                                
                                 <input name="submit" type="submit" style="background-color: <?php echo $get_color_picker['picker3']; ?>" class="callmeback" value="Call me back" />
@@ -1241,7 +1256,7 @@ function displayRightContactRequestSetings() {
         NMRichReviewsAdminHelper::render_container_close();
 
         NMRichReviewsAdminHelper::render_container_open('content-container-right');
-        NMRichReviewsAdminHelper::render_postbox_open('Best Time');
+        NMRichReviewsAdminHelper::render_postbox_open('Dropdown 1');
         listBestTime();
         NMRichReviewsAdminHelper::render_postbox_close();
         NMRichReviewsAdminHelper::render_container_close();
@@ -1258,9 +1273,7 @@ function displayRightContactRequestSetings() {
 }
 
 function callback_about_us() {
-    $output = '<p><strong>WP Social SEO</strong> gives you the ability to quick add your Social Profiles in a compliant way so that it shows up in a google search.</p>
-               <p>Specify your social profiles to Google <a href="https://developers.google.com/webmasters/structured-data/customize/social-profiles" target="_blank">https://developers.google.com/webmasters/structured-data/customize/social-profiles</a></p>
-               <p>Use mark-up on your official website to add your social profile information to the Google Knowledge panel in some searches. Knowledge panels can prominently display your social profile information.</p>
+    $output = '<p><strong>WP Call Me Back</strong> gives you the ability to quickly add a call back form to your sidebar. You can control the colour scheme via the CSS Colour picker as well as content for the dropdown messages directly from within the plugin.</p>                              
                <p>Our other free plugins can be found at <a href="https://profiles.wordpress.org/pigeonhut/" target="_blank">https://profiles.wordpress.org/pigeonhut/</a> </p>
                <p>To see more about us as a company, visit <a href="http://www.web9.co.uk" target="_blank">http://www.web9.co.uk</a></p>
                <p>Proudly made in Belfast, Northern Ireland.</p>';
@@ -1336,7 +1349,8 @@ function callback_settings_info() {
     } else {
         $checked = '';
     }
-    $output = '   <div class="info_class"> 
+    $output = '<div style="background: none repeat scroll 0 0 #99ff99;display:block;padding: 10px;">Available Short codes: <i>{client name}, {number}, {dropdown1}, {email}, {postcode}, {option}, {message}, {bloginfo}</i></div></br>';
+    $output .= '   <div class="info_class"> 
                     <form id="callback_settings_options" method="post" action="' . get_admin_url() . 'admin-post.php" onsubmit="return validate();">  
                         <fieldset>
                             <input type=\'hidden\' name=\'action\' value=\'submit-callback-settings-options\' />

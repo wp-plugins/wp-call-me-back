@@ -11,8 +11,9 @@ class Wpg_Callback_List_Table extends WP_List_Table_Copy {
     function __construct() {
         global $status, $page;
         global $wpdb;
-        $Lists = $wpdb->get_results('SELECT * FROM  ' . $wpdb->prefix . 'request_a_call_back');
-        //echo $wpdb->last_query;
+        $Lists = $wpdb->get_results('SELECT * FROM  ' . $wpdb->prefix . 'request_a_call_back order by id desc');
+        //echo $wpdb->last_query;exit;
+        //echo '<pre>'; print_r($Lists); echo '</pre>';exit;
         $i = 0;
         foreach ($Lists as $List) {
             $this->example_data[$i]['ID'] = $List->id;
@@ -104,9 +105,9 @@ class Wpg_Callback_List_Table extends WP_List_Table_Copy {
 
     function usort_reorder($a, $b) {
         // If no sort, default to title
-        $orderby = (!empty($_GET['orderby']) ) ? $_GET['orderby'] : 'name';
+        $orderby = (!empty($_GET['orderby']) ) ? $_GET['orderby'] : 'id';
         // If no order, default to asc
-        $order = (!empty($_GET['order']) ) ? $_GET['order'] : 'asc';
+        $order = (!empty($_GET['order']) ) ? $_GET['order'] : 'desc';
         // Determine sort order
         $result = strcmp($a[$orderby], $b[$orderby]);
         // Send final sort direction to usort
