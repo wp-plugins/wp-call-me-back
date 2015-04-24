@@ -3,7 +3,7 @@ Contributors: pigeonhut
 Donate link: 
 Tags: Call Back, call back widget, quick contact, arrange call back
 Requires at least: 3.0
-Tested up to: 4.1
+Tested up to: 4.2
 Stable tag: 1.1.5
 
 WP Call Back, gives you the ability to quickly add a call back widget to the sidebar of your website.
