@@ -5,7 +5,7 @@ ob_start();
  * Plugin Name: Call me back widget
  * Plugin URI: http://pigeonhut.com
  * Description: Request call me back widget by PigeonHUT
- * Version: 2.09
+ * Version: 3.0
  * Author: Jody Nesbitt (WebPlugins)
  * Author URI: http://webplugins.co.uk
  *
@@ -665,7 +665,20 @@ function callSettings() {
     if (isset($get_option_details['subject']) && $get_option_details['subject'] != '')
         $subject = $get_option_details['subject'];
     if (isset($get_option_details['dropdown-two']) && $get_option_details['dropdown-two'] != '')
-        $dropdown = $get_option_details['dropdown-two'];
+        $dropdown = $get_option_details['dropdown-two'];    
+    if ($getEmailContent == '') {
+        $getEmailContent = 'Dear Admin,
+            
+            Number : {number}
+            Best time to call : {timetocall}
+            Email : {email}
+            Postcode : {postcode}
+            Option : {option}
+            Message : {message}
+
+    Regards,
+    {bloginfo} team';
+    }
     ?>
     <script>
         jQuery(document).ready(function () {
