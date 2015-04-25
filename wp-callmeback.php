@@ -5,7 +5,7 @@ ob_start();
  * Plugin Name: Call me back widget
  * Plugin URI: http://pigeonhut.com
  * Description: Request call me back widget by PigeonHUT
- * Version: 2.08
+ * Version: 2.09
  * Author: Jody Nesbitt (WebPlugins)
  * Author URI: http://webplugins.co.uk
  *
@@ -816,6 +816,14 @@ function saveCallbackSettingsOptions() {
             $insertArray['picker3'] = $_POST['picker3'];
         if (isset($_POST['picker4']))
             $insertArray['picker4'] = $_POST['picker4'];
+        if (isset($_POST['picker5']))
+            $insertArray['picker5'] = $_POST['picker5'];
+        if (isset($_POST['picker6']))
+            $insertArray['picker6'] = $_POST['picker6'];
+        if (isset($_POST['picker7']))
+            $insertArray['picker7'] = $_POST['picker7'];
+        if (isset($_POST['picker8']))
+            $insertArray['picker8'] = $_POST['picker8'];
 //        if (isset($_POST['call_back_admin_email']))
 //            $insertArray['call_back_admin_email'] = $_POST['call_back_admin_email'];
 //        if (isset($_POST['site_key']))
@@ -828,6 +836,8 @@ function saveCallbackSettingsOptions() {
 //            $insertArray['subject'] = $_POST['subject'];
         if (isset($_POST['dropdown-two']))
             $insertArray['dropdown-two'] = $_POST['dropdown-two'];
+        if (isset($_POST['style-type']))
+            $insertArray['style-type'] = $_POST['style-type'];
 
         $serialize_array = serialize($insertArray);
         update_option('rcb_settings_options_picker', $serialize_array);
@@ -1065,11 +1075,60 @@ class wpgcallmeback_Widget extends WP_Widget {
                     echo 'Please enter correct captcha code';
                 }
             } else {
+                $formId = 'not-yet-set';
+                if (isset($get_color_picker['style-type']) && $get_color_picker['style-type'] != '') {
+                    if ($get_color_picker['style-type'] == 1) {
+                        $formId = 'no-id';
+                    } else {
+                        $formId = 'techs-form';
+                    }
+                }
                 ?>
                 <style>
                     .g-recaptcha div div {width:100% !important}
                     .g-recaptcha div div iframe{width:100% !important}
                     .g-recaptcha div div iframe html body .rc-anchor .rc-anchor-content{width:47px !important;}
+                    <?php if ($formId == 'techs-form') { ?>
+                        .wpgcallbackform {width:100%;padding:0; background:<?php echo $get_color_picker['picker1']; ?>; border-radius:5px;}
+                        .wpgctop{
+                            border-radius: 5px 5px 0px 0px;                           
+                        }
+                        .wpgcbottom{
+                            border-radius: 0px 0px 5px 5px;                           
+                        }
+                    <?php } else { ?>
+                        .wpgcallbackform {width:100%;padding:25px 15px 15px 15px;}
+                        .wpgctop{
+                            border-radius: 5px 5px 0px 0px;
+                            padding: 15px;
+                        }
+                        .wpgcbottom{
+                            border-radius: 0px 0px 5px 5px;
+                            padding: 15px;
+                        }
+                    <?php } ?>
+                    .wpgcallbackform #techs-form .wpgtitle {
+                        background: none repeat scroll 0 0 <?php echo $get_color_picker['picker5']; ?>;
+                        border-radius: 3px 3px 0 0;
+                        font-family: "bebas_neueregular";
+                        font-size: 20px;
+                        font-weight: normal;
+                        letter-spacing: 1px;
+                        padding: 9px 10px 4px;
+                    }
+                    .wpgcallbackform #techs-form .wpginfo {
+                        background: none repeat scroll 0 0 <?php echo $get_color_picker['picker6']; ?>;
+                        color: #000;
+                        padding: 10px;
+                    }
+                    .wpgcallbackform #techs-form .wpgform input, .wpgcallbackform #techs-form .wpgform select {
+                        background: none repeat scroll 0 0 <?php echo $get_color_picker['picker7']; ?>;
+                        color: #fff;
+                    }
+                    #techs-form .wpgform {
+                        background: none repeat scroll 0 0 <?php echo $get_color_picker['picker8']; ?>;
+                        padding: 0 10px;
+                    }
                 </style>
                 <script>
                     function validate() {
@@ -1102,200 +1161,211 @@ class wpgcallmeback_Widget extends WP_Widget {
                     <script type="text/javascript"
                             src="https://www.google.com/recaptcha/api.js?hl=<?php echo $lang; ?>">
                     </script>
-                    <div class="wpgctop" style="background-color: <?php echo $get_color_picker['picker1']; ?>;">
-                        <div class="wpgtitle"><?php echo $title; ?></div>
-                        <div class="wpgslogan"><?php echo $wpgslogan; ?></div>
-                        <div class="wpginfo"><?php echo $wpginfo; ?></div>
-                        <div class="wpgform"><form action="#" method="post" enctype="application/x-www-form-urlencoded" name="callbackwidget" onsubmit="return validate();">
-                                <input name="rname" type="text" id="rname" value="Name"  onclick="this.value = '';" onblur="if (this.value == '') {
-                                            this.value = 'Name'
-                                        }" size="17" />
-                                <input name="rnumber" id="rnumber" type="text" value="Number"  onclick="this.value = '';"  onblur="if (this.value == '') {
-                                            this.value = 'Number'
-                                        }"  size="17" />
-                                <input name="remail" id="remail" type="text" value="Email"  onclick="this.value = '';"  onblur="if (this.value == '') {
-                                            this.value = 'Email'
-                                        }"  size="17" />
-                                <input name="postcode" id="postcode" type="text" value="Postcode"  onclick="this.value = '';"  onblur="if (this.value == '') {
-                                            this.value = 'Postcode'
-                                        }"  size="17" />
-                                <select class="wpgselect" name="rtime" id="rtime" size="1">                                    
-                                    <?php
-                                    global $wpdb;
-                                    $getAllBestTimes = $wpdb->get_results('SELECT best_time FROM  ' . $wpdb->prefix . 'call_back_best_time');
-                                    foreach ($getAllBestTimes as $getAllBestTime) {
-                                        echo '<option value=' . $getAllBestTime->best_time . '>' . $getAllBestTime->best_time . '</option>';
-                                    }
-                                    ?>                                                                       
-                                </select>
-                                <?php if ($get_color_picker['dropdown-two'] == 1) { ?>
-                                    <select class="wpgselect" id="optiontwo" name="optiontwo" size="1">                                    
+                    <?php if ($formId == 'techs-form') { ?>
+                        <div id="<?php echo $formId; ?>" class="wpgctop">
+                            <div class="wpgtitle"><?php echo $title; ?><p style="text-align:right"><?php echo $wpgslogan; ?></p></div>
+                        <?php } else { ?>
+                            <div id="<?php echo $formId; ?>" class="wpgctop" style="background-color: <?php echo $get_color_picker['picker1']; ?>;">
+                                <div class="wpgtitle"><?php echo $title; ?></div>
+                                <div class="wpgslogan"><?php echo $wpgslogan; ?></div>
+                            <?php } ?>                                            
+                            <div class="wpginfo"><?php echo $wpginfo; ?></div>
+                            <div class="wpgform"><form action="#" method="post" enctype="application/x-www-form-urlencoded" name="callbackwidget" onsubmit="return validate();">
+                                    <input name="rname" type="text" id="rname" value="Name"  onclick="this.value = '';" onblur="if (this.value == '') {
+                                                                this.value = 'Name'
+                                                            }" size="17" />
+                                    <input name="rnumber" id="rnumber" type="text" value="Number"  onclick="this.value = '';"  onblur="if (this.value == '') {
+                                                                this.value = 'Number'
+                                                            }"  size="17" />
+                                    <input name="remail" id="remail" type="text" value="Email"  onclick="this.value = '';"  onblur="if (this.value == '') {
+                                                                this.value = 'Email'
+                                                            }"  size="17" />
+                                    <input name="postcode" id="postcode" type="text" value="Postcode"  onclick="this.value = '';"  onblur="if (this.value == '') {
+                                                                this.value = 'Postcode'
+                                                            }"  size="17" />
+                                    <select class="wpgselect" name="rtime" id="rtime" size="1">                                    
                                         <?php
                                         global $wpdb;
-                                        $getAllBestTimes = $wpdb->get_results('SELECT * FROM  ' . $wpdb->prefix . 'drop_down_options');
+                                        $getAllBestTimes = $wpdb->get_results('SELECT best_time FROM  ' . $wpdb->prefix . 'call_back_best_time');
                                         foreach ($getAllBestTimes as $getAllBestTime) {
-                                            echo '<option value="' . $getAllBestTime->option . '">' . $getAllBestTime->option . '</option>';
+                                            echo '<option value=' . $getAllBestTime->best_time . '>' . $getAllBestTime->best_time . '</option>';
                                         }
                                         ?>                                                                       
                                     </select>
-                                    <input name="message" id="message" type="text" value="Message"  onclick="this.value = '';"  onblur="if (this.value == '') {
-                                                this.value = 'Message'
-                                            }"  size="17" />
-                                       <?php } ?>
-                                <div class="g-recaptcha" style="width:100%; display: block;" data-theme="light" data-type="image" data-sitekey="<?php echo $get_recaptcha_details['site_key']; ?>"></div>                                                                                
-                                <input name="submit" type="submit" style="background-color: <?php echo $get_color_picker['picker3']; ?>" class="callmeback" value="Call me back" />
-                            </form></div>
+                                    <?php if ($get_color_picker['dropdown-two'] == 1) { ?>
+                                        <select class="wpgselect" id="optiontwo" name="optiontwo" size="1">                                    
+                                            <?php
+                                            global $wpdb;
+                                            $getAllBestTimes = $wpdb->get_results('SELECT * FROM  ' . $wpdb->prefix . 'drop_down_options');
+                                            foreach ($getAllBestTimes as $getAllBestTime) {
+                                                echo '<option value="' . $getAllBestTime->option . '">' . $getAllBestTime->option . '</option>';
+                                            }
+                                            ?>                                                                       
+                                        </select>
+                                        <input name="message" id="message" type="text" value="Message"  onclick="this.value = '';"  onblur="if (this.value == '') {
+                                                                        this.value = 'Message'
+                                                                    }"  size="17" />
+                                           <?php } ?>
+                                    <div class="g-recaptcha" style="width:100%; display: block;" data-theme="light" data-type="image" data-sitekey="<?php echo $get_recaptcha_details['site_key']; ?>"></div>                                                                                
+                                    <?php if ($formId != 'techs-form') { ?>
+                                        <input name="submit" type="submit" style="background-color: <?php echo $get_color_picker['picker3']; ?>" class="callmeback" value="Call me back" />
+                                    <?php } else { ?>
+                                        <input name="submit" type="submit" class="techs-btn callmeback" value="" />
+                                    <?php } ?>
+                                </form></div>
+                        </div>
+                        <div class="wpgcbottom" style="background-color: <?php echo $get_color_picker['picker2']; ?>">                            
+                            <?php if ($formId != 'techs-form') { ?>
+                                <div class="wpgcallbut" style="background-color: <?php echo $get_color_picker['picker4']; ?>;"><?php echo $wpgcallbut; ?></div>
+                                <div class="wpgcallus"><?php echo $wpgcallus; ?></div>
+                                <div class="wpgphonenum"><?php echo $wpgphonenum; ?></div>
+                            <?php } ?>                                                           
+                            <div class="wpglinesinfo"><?php echo $wpglinesinfo; ?></div>
+                        </div>
                     </div>
-                    <div class="wpgcbottom" style="background-color: <?php echo $get_color_picker['picker2']; ?>">
-                        <div class="wpgcallbut" style="background-color: <?php echo $get_color_picker['picker4']; ?>;"><?php echo $wpgcallbut; ?></div>
-                        <div class="wpgcallus"><?php echo $wpgcallus; ?></div>
-                        <div class="wpgphonenum"><?php echo $wpgphonenum; ?></div>
-                        <div class="wpglinesinfo"><?php echo $wpglinesinfo; ?></div>
-                    </div>
-                </div>
-                <?php
-            }
-        /* After widget (defined by themes). */
-        echo $after_widget;
+                    <?php
+                }
+            /* After widget (defined by themes). */
+            echo $after_widget;
+        }
+
+        /**
+         * Update the widget settings.
+         */
+        function update($new_instance, $old_instance) {
+            $instance = $old_instance;
+            /* Strip tags for title and name to remove HTML (important for text inputs). */
+            $instance['wpgtitle'] = strip_tags($new_instance['wpgtitle']);
+            $instance['wpgslogan'] = strip_tags($new_instance['wpgslogan']);
+            $instance['wpginfo'] = strip_tags($new_instance['wpginfo']);
+            $instance['wpgcallbut'] = strip_tags($new_instance['wpgcallbut']);
+            $instance['wpgcallus'] = strip_tags($new_instance['wpgcallus']);
+            $instance['wpgphonenum'] = strip_tags($new_instance['wpgphonenum']);
+            $instance['wpglinesinfo'] = strip_tags($new_instance['wpglinesinfo']);
+            /* No need to strip tags for show_form. */
+            $instance['show_form'] = $new_instance['show_form'];
+            return $instance;
+        }
+
+        /**
+         * Displays the widget settings controls on the widget panel.
+         * Make use of the get_field_id() and get_field_name() function
+         * when creating your form elements. This handles the confusing stuff.
+         */
+        function form($instance) {
+            /* Set up some default widget settings. */
+            $defaults = array('wpgtitle' => 'REQUEST A CALL BACK', 'wpgslogan' => 'Free no obligation call', 'wpginfo' => 'A Short Message goes here.', 'wpgcallbut' => 'Here to help you', 'wpgcallus' => 'Call Us', 'wpgphonenum' => 'your number', 'wpglinesinfo' => 'Open 8am – 8pm Monday to Friday Saturday and Sunday 9-4pm', 'show_form' => true);
+            $instance = wp_parse_args((array) $instance, $defaults);
+            ?>
+            <!-- Widget Title: Text Input -->
+            <p>
+                <label for="<?php echo $this->get_field_id('wpgtitle'); ?>"><?php _e('Title:', 'wpgtitle'); ?></label>
+                <input id="<?php echo $this->get_field_id('wpgtitle'); ?>" name="<?php echo $this->get_field_name('wpgtitle'); ?>" value="<?php echo $instance['wpgtitle']; ?>" style="width:100%;" />
+            </p>
+            <p>
+
+                <label for="<?php echo $this->get_field_id('wpgslogan'); ?>"><?php _e('Slogan:', 'wpgcallmeback'); ?></label>
+                <input id="<?php echo $this->get_field_id('wpgslogan'); ?>" name="<?php echo $this->get_field_name('wpgslogan'); ?>" value="<?php echo $instance['wpgslogan']; ?>" style="width:100%;" />
+            </p>
+            <p>
+                <label for="<?php echo $this->get_field_id('wpginfo'); ?>"><?php _e('Information:', 'wpginfo'); ?></label>
+                <input id="<?php echo $this->get_field_id('wpginfo'); ?>" name="<?php echo $this->get_field_name('wpginfo'); ?>" value="<?php echo $instance['wpginfo']; ?>" style="width:100%;" />
+            </p>
+            <p>
+                <label for="<?php echo $this->get_field_id('wpgcallbut'); ?>"><?php _e('Call button:', 'wpgcallbut'); ?></label>
+                <input id="<?php echo $this->get_field_id('wpgcallbut'); ?>" name="<?php echo $this->get_field_name('wpgcallbut'); ?>" value="<?php echo $instance['wpgcallbut']; ?>" style="width:100%;" />
+            </p>
+            <p>
+                <label for="<?php echo $this->get_field_id('wpgcallus'); ?>"><?php _e('Call Us Title:', 'wpgcallus'); ?></label>
+                <input id="<?php echo $this->get_field_id('wpgcallus'); ?>" name="<?php echo $this->get_field_name('wpgcallus'); ?>" value="<?php echo $instance['wpgcallus']; ?>" style="width:100%;" />
+            </p>
+            <p>
+                <label for="<?php echo $this->get_field_id('wpgphonenum'); ?>"><?php _e('Phone Number:', 'wpgphonenum'); ?></label>
+                <input id="<?php echo $this->get_field_id('wpgphonenum'); ?>" name="<?php echo $this->get_field_name('wpgphonenum'); ?>" value="<?php echo $instance['wpgphonenum']; ?>" style="width:100%;" />
+            </p>
+            <p>
+                <label for="<?php echo $this->get_field_id('wpglinesinfo'); ?>"><?php _e('Phone lines info:', 'wpglinesinfo'); ?></label>
+                <input id="<?php echo $this->get_field_id('wpglinesinfo'); ?>" name="<?php echo $this->get_field_name('wpglinesinfo'); ?>" value="<?php echo $instance['wpglinesinfo']; ?>" style="width:100%;" />
+            </p>
+            <p>
+                <input class="checkbox" type="checkbox" <?php checked($instance['show_form'], on); ?> id="<?php echo $this->get_field_id('show_form'); ?>" name="<?php echo $this->get_field_name('show_form'); ?>" /> 
+                <label for="<?php echo $this->get_field_id('show_form'); ?>"><?php _e('Display form publicly?', 'example'); ?></label>
+            </p>
+            <?php
+        }
+
     }
 
-    /**
-     * Update the widget settings.
-     */
-    function update($new_instance, $old_instance) {
-        $instance = $old_instance;
-        /* Strip tags for title and name to remove HTML (important for text inputs). */
-        $instance['wpgtitle'] = strip_tags($new_instance['wpgtitle']);
-        $instance['wpgslogan'] = strip_tags($new_instance['wpgslogan']);
-        $instance['wpginfo'] = strip_tags($new_instance['wpginfo']);
-        $instance['wpgcallbut'] = strip_tags($new_instance['wpgcallbut']);
-        $instance['wpgcallus'] = strip_tags($new_instance['wpgcallus']);
-        $instance['wpgphonenum'] = strip_tags($new_instance['wpgphonenum']);
-        $instance['wpglinesinfo'] = strip_tags($new_instance['wpglinesinfo']);
-        /* No need to strip tags for show_form. */
-        $instance['show_form'] = $new_instance['show_form'];
-        return $instance;
-    }
-
-    /**
-     * Displays the widget settings controls on the widget panel.
-     * Make use of the get_field_id() and get_field_name() function
-     * when creating your form elements. This handles the confusing stuff.
-     */
-    function form($instance) {
-        /* Set up some default widget settings. */
-        $defaults = array('wpgtitle' => 'REQUEST A CALL BACK', 'wpgslogan' => 'Free no obligation call', 'wpginfo' => 'A Short Message goes here.', 'wpgcallbut' => 'Here to help you', 'wpgcallus' => 'Call Us', 'wpgphonenum' => 'your number', 'wpglinesinfo' => 'Open 8am – 8pm Monday to Friday Saturday and Sunday 9-4pm', 'show_form' => true);
-        $instance = wp_parse_args((array) $instance, $defaults);
+    function displayRightContactRequest() {
         ?>
-        <!-- Widget Title: Text Input -->
-        <p>
-            <label for="<?php echo $this->get_field_id('wpgtitle'); ?>"><?php _e('Title:', 'wpgtitle'); ?></label>
-            <input id="<?php echo $this->get_field_id('wpgtitle'); ?>" name="<?php echo $this->get_field_name('wpgtitle'); ?>" value="<?php echo $instance['wpgtitle']; ?>" style="width:100%;" />
-        </p>
-        <p>
-
-            <label for="<?php echo $this->get_field_id('wpgslogan'); ?>"><?php _e('Slogan:', 'wpgcallmeback'); ?></label>
-            <input id="<?php echo $this->get_field_id('wpgslogan'); ?>" name="<?php echo $this->get_field_name('wpgslogan'); ?>" value="<?php echo $instance['wpgslogan']; ?>" style="width:100%;" />
-        </p>
-        <p>
-            <label for="<?php echo $this->get_field_id('wpginfo'); ?>"><?php _e('Information:', 'wpginfo'); ?></label>
-            <input id="<?php echo $this->get_field_id('wpginfo'); ?>" name="<?php echo $this->get_field_name('wpginfo'); ?>" value="<?php echo $instance['wpginfo']; ?>" style="width:100%;" />
-        </p>
-        <p>
-            <label for="<?php echo $this->get_field_id('wpgcallbut'); ?>"><?php _e('Call button:', 'wpgcallbut'); ?></label>
-            <input id="<?php echo $this->get_field_id('wpgcallbut'); ?>" name="<?php echo $this->get_field_name('wpgcallbut'); ?>" value="<?php echo $instance['wpgcallbut']; ?>" style="width:100%;" />
-        </p>
-        <p>
-            <label for="<?php echo $this->get_field_id('wpgcallus'); ?>"><?php _e('Call Us Title:', 'wpgcallus'); ?></label>
-            <input id="<?php echo $this->get_field_id('wpgcallus'); ?>" name="<?php echo $this->get_field_name('wpgcallus'); ?>" value="<?php echo $instance['wpgcallus']; ?>" style="width:100%;" />
-        </p>
-        <p>
-            <label for="<?php echo $this->get_field_id('wpgphonenum'); ?>"><?php _e('Phone Number:', 'wpgphonenum'); ?></label>
-            <input id="<?php echo $this->get_field_id('wpgphonenum'); ?>" name="<?php echo $this->get_field_name('wpgphonenum'); ?>" value="<?php echo $instance['wpgphonenum']; ?>" style="width:100%;" />
-        </p>
-        <p>
-            <label for="<?php echo $this->get_field_id('wpglinesinfo'); ?>"><?php _e('Phone lines info:', 'wpglinesinfo'); ?></label>
-            <input id="<?php echo $this->get_field_id('wpglinesinfo'); ?>" name="<?php echo $this->get_field_name('wpglinesinfo'); ?>" value="<?php echo $instance['wpglinesinfo']; ?>" style="width:100%;" />
-        </p>
-        <p>
-            <input class="checkbox" type="checkbox" <?php checked($instance['show_form'], on); ?> id="<?php echo $this->get_field_id('show_form'); ?>" name="<?php echo $this->get_field_name('show_form'); ?>" /> 
-            <label for="<?php echo $this->get_field_id('show_form'); ?>"><?php _e('Display form publicly?', 'example'); ?></label>
-        </p>
-        <?php
-    }
-
-}
-
-function displayRightContactRequest() {
-    ?>
-    <div class="right-side">
-        <?php
-        NMRichReviewsAdminHelper::render_container_open('content-container-right');
-        NMRichReviewsAdminHelper::render_postbox_open('Information');
-        callback_contact_request_info();
-        NMRichReviewsAdminHelper::render_postbox_close();
-        NMRichReviewsAdminHelper::render_container_close();
-        //      NMRichReviewsAdminHelper::render_container_open('content-container-right');
+        <div class="right-side">
+            <?php
+            NMRichReviewsAdminHelper::render_container_open('content-container-right');
+            NMRichReviewsAdminHelper::render_postbox_open('Information');
+            callback_contact_request_info();
+            NMRichReviewsAdminHelper::render_postbox_close();
+            NMRichReviewsAdminHelper::render_container_close();
+            //      NMRichReviewsAdminHelper::render_container_open('content-container-right');
 //        NMRichReviewsAdminHelper::render_postbox_open('What we Do');
 //        //render_rr_what_we_do();
 //        NMRichReviewsAdminHelper::render_postbox_close();
 //        NMRichReviewsAdminHelper::render_container_close();
-        ?>
-    </div>
-    <?php
-}
-
-function displayRightContactRequestSetings() {
-    ?>
-    <div class="right-side">
+            ?>
+        </div>
         <?php
-        NMRichReviewsAdminHelper::render_container_open('content-container-right');
-        NMRichReviewsAdminHelper::render_postbox_open('Information');
-        callback_settings_info();
-        NMRichReviewsAdminHelper::render_postbox_close();
-        NMRichReviewsAdminHelper::render_container_close();
+    }
 
-        NMRichReviewsAdminHelper::render_container_open('content-container-right');
-        NMRichReviewsAdminHelper::render_postbox_open('Dropdown 1');
-        listBestTime();
-        NMRichReviewsAdminHelper::render_postbox_close();
-        NMRichReviewsAdminHelper::render_container_close();
-
-        NMRichReviewsAdminHelper::render_container_open('content-container-right');
-        NMRichReviewsAdminHelper::render_postbox_open('Dropdown Options 2');
-        listOptionsTwo();
-        NMRichReviewsAdminHelper::render_postbox_close();
-        NMRichReviewsAdminHelper::render_container_close();
-        //  NMRichReviewsAdminHelper::render_container_open('content-container-right');
+    function displayRightContactRequestSetings() {
         ?>
-    </div>
-    <?php
-}
+        <div class="right-side">
+            <?php
+            NMRichReviewsAdminHelper::render_container_open('content-container-right');
+            NMRichReviewsAdminHelper::render_postbox_open('Information');
+            callback_settings_info();
+            NMRichReviewsAdminHelper::render_postbox_close();
+            NMRichReviewsAdminHelper::render_container_close();
 
-function callback_about_us() {
-    $output = '<p><strong>WP Call Me Back</strong> gives you the ability to quickly add a call back form to your sidebar. You can control the colour scheme via the CSS Colour picker as well as content for the dropdown messages directly from within the plugin.</p>                              
+            NMRichReviewsAdminHelper::render_container_open('content-container-right');
+            NMRichReviewsAdminHelper::render_postbox_open('Dropdown 1');
+            listBestTime();
+            NMRichReviewsAdminHelper::render_postbox_close();
+            NMRichReviewsAdminHelper::render_container_close();
+
+            NMRichReviewsAdminHelper::render_container_open('content-container-right');
+            NMRichReviewsAdminHelper::render_postbox_open('Dropdown Options 2');
+            listOptionsTwo();
+            NMRichReviewsAdminHelper::render_postbox_close();
+            NMRichReviewsAdminHelper::render_container_close();
+            //  NMRichReviewsAdminHelper::render_container_open('content-container-right');
+            ?>
+        </div>
+        <?php
+    }
+
+    function callback_about_us() {
+        $output = '<p><strong>WP Call Me Back</strong> gives you the ability to quickly add a call back form to your sidebar. You can control the colour scheme via the CSS Colour picker as well as content for the dropdown messages directly from within the plugin.</p>                              
                <p>Our other free plugins can be found at <a href="https://profiles.wordpress.org/pigeonhut/" target="_blank">https://profiles.wordpress.org/pigeonhut/</a> </p>
                <p>To see more about us as a company, visit <a href="http://www.web9.co.uk" target="_blank">http://www.web9.co.uk</a></p>
                <p>Proudly made in Belfast, Northern Ireland.</p>';
-    echo $output;
-}
+        echo $output;
+    }
 
-function callback_contact_request_info() {
-    session_start();
-    global $wpdb;
-    $call_back_admin_email = '';
-    $site_key = '';
-    $secret = '';
-    $get_option_details = unserialize(get_option('rcb_recaptcha_options'));
-    if (isset($get_option_details['call_back_admin_email']) && $get_option_details['call_back_admin_email'] != '')
-        $call_back_admin_email = $get_option_details['call_back_admin_email'];
-    if (isset($get_option_details['site_key']) && $get_option_details['site_key'] != '')
-        $site_key = $get_option_details['site_key'];
-    if (isset($get_option_details['secret']) && $get_option_details['secret'] != '')
-        $secret = $get_option_details['secret'];
-    _statusMessage('Recaptcha settings');
-    $output = '<div style="background: none repeat scroll 0 0 #99ff99;display:block;padding: 10px;">Don\'t yet have a Google Recaptcha account ? <a href="http://www.google.com/recaptcha/intro/index.html" target="_blank">Signup Free</a></div></br>';
-    $output1 = '<div class="info_class"><div>
+    function callback_contact_request_info() {
+        session_start();
+        global $wpdb;
+        $call_back_admin_email = '';
+        $site_key = '';
+        $secret = '';
+        $get_option_details = unserialize(get_option('rcb_recaptcha_options'));
+        if (isset($get_option_details['call_back_admin_email']) && $get_option_details['call_back_admin_email'] != '')
+            $call_back_admin_email = $get_option_details['call_back_admin_email'];
+        if (isset($get_option_details['site_key']) && $get_option_details['site_key'] != '')
+            $site_key = $get_option_details['site_key'];
+        if (isset($get_option_details['secret']) && $get_option_details['secret'] != '')
+            $secret = $get_option_details['secret'];
+        _statusMessage('Recaptcha settings');
+        $output = '<div style="background: none repeat scroll 0 0 #99ff99;display:block;padding: 10px;">Don\'t yet have a Google Recaptcha account ? <a href="http://www.google.com/recaptcha/intro/index.html" target="_blank">Signup Free</a></div></br>';
+        $output1 = '<div class="info_class"><div>
         <form id="callback_settings" method="post" action="' . get_admin_url() . 'admin-post.php" onsubmit="return validate();">  
             <fieldset>
                 <input type=\'hidden\' name=\'action\' value=\'submit-recaptcha-form\' />
@@ -1319,38 +1389,62 @@ function callback_contact_request_info() {
             </fieldset>
         </form>
     </div>             </div></br>';
-    //$output2 ='<div class="info_class">See this link to view <a href="https://developers.google.com/structured-data/customize/social-profiles" target="_blank">Googles Description</a></div>';
-    echo $output . $output1;
-}
-
-function callback_settings_info() {
-    session_start();
-    global $wpdb;
-    $picker1 = '';
-    $picker2 = '';
-    $picker3 = '';
-    $picker4 = '';
-    $call_back_admin_email = '';
-    $get_option_details = unserialize(get_option('rcb_settings_options_picker'));
-    $get_recaptcha_details = unserialize(get_option('rcb_recaptcha_options'));
-    if (isset($get_option_details['picker1']) && $get_option_details['picker1'] != '')
-        $picker1 = $get_option_details['picker1'];
-    if (isset($get_option_details['picker2']) && $get_option_details['picker2'] != '')
-        $picker2 = $get_option_details['picker2'];
-    if (isset($get_option_details['picker3']) && $get_option_details['picker3'] != '')
-        $picker3 = $get_option_details['picker3'];
-    if (isset($get_option_details['picker4']) && $get_option_details['picker4'] != '')
-        $picker4 = $get_option_details['picker4'];
-    if (isset($get_option_details['dropdown-two']) && $get_option_details['dropdown-two'] != '')
-        $dropdown = $get_option_details['dropdown-two'];
-    _statusMessage('Settings and Options');
-    if ($dropdown == 1) {
-        $checked = 'checked="checked"';
-    } else {
-        $checked = '';
+        //$output2 ='<div class="info_class">See this link to view <a href="https://developers.google.com/structured-data/customize/social-profiles" target="_blank">Googles Description</a></div>';
+        echo $output . $output1;
     }
-    $output = '<div style="background: none repeat scroll 0 0 #99ff99;display:block;padding: 10px;">Available Short codes: <i>{client name}, {number}, {dropdown1}, {email}, {postcode}, {option}, {message}, {bloginfo}</i></div></br>';
-    $output .= '   <div class="info_class"> 
+
+    function callback_settings_info() {
+        session_start();
+        global $wpdb;
+        $picker1 = '';
+        $picker2 = '';
+        $picker3 = '';
+        $picker4 = '';
+        $picker5 = '';
+        $picker6 = '';
+        $picker7 = '';
+        $picker8 = '';
+        $style_type = '';
+        $call_back_admin_email = '';
+        $get_option_details = unserialize(get_option('rcb_settings_options_picker'));
+        $get_recaptcha_details = unserialize(get_option('rcb_recaptcha_options'));
+        if (isset($get_option_details['picker1']) && $get_option_details['picker1'] != '')
+            $picker1 = $get_option_details['picker1'];
+        if (isset($get_option_details['picker2']) && $get_option_details['picker2'] != '')
+            $picker2 = $get_option_details['picker2'];
+        if (isset($get_option_details['picker3']) && $get_option_details['picker3'] != '')
+            $picker3 = $get_option_details['picker3'];
+        if (isset($get_option_details['picker4']) && $get_option_details['picker4'] != '')
+            $picker4 = $get_option_details['picker4'];
+        if (isset($get_option_details['picker5']) && $get_option_details['picker5'] != '')
+            $picker5 = $get_option_details['picker5'];
+        if (isset($get_option_details['picker6']) && $get_option_details['picker6'] != '')
+            $picker6 = $get_option_details['picker6'];
+        if (isset($get_option_details['picker7']) && $get_option_details['picker7'] != '')
+            $picker7 = $get_option_details['picker7'];
+        if (isset($get_option_details['picker8']) && $get_option_details['picker8'] != '')
+            $picker8 = $get_option_details['picker8'];
+        if (isset($get_option_details['style-type']) && $get_option_details['style-type'] != '')
+            $style_type = $get_option_details['style-type'];
+        if (isset($get_option_details['dropdown-two']) && $get_option_details['dropdown-two'] != '')
+            $dropdown = $get_option_details['dropdown-two'];
+        _statusMessage('Settings and Options');
+        if ($dropdown == 1) {
+            $checked = 'checked="checked"';
+        } else {
+            $checked = '';
+        }
+        $radio1_checked = 'checked="checked"';
+        $radio2_checked = '';
+        if ($style_type == 1) {
+            $radio1_checked = 'checked="checked"';
+        }
+        if ($style_type == 2) {
+            $radio1_checked = '';
+            $radio2_checked = 'checked="checked"';
+        }
+        $output = '<div style="background: none repeat scroll 0 0 #99ff99;display:block;padding: 10px;">Available Short codes: <i>{client name}, {number}, {dropdown1}, {email}, {postcode}, {option}, {message}, {bloginfo}</i></div></br>';
+        $output .= '   <div class="info_class"> 
                     <form id="callback_settings_options" method="post" action="' . get_admin_url() . 'admin-post.php" onsubmit="return validate();">  
                         <fieldset>
                             <input type=\'hidden\' name=\'action\' value=\'submit-callback-settings-options\' />
@@ -1370,10 +1464,31 @@ function callback_settings_info() {
                                 <tr>
                                     <td>Help button background color : </td>
                                     <td><input readonly type="text" id="picker4" name="picker4" style="border-color:' . $picker4 . '" value="' . $picker4 . '"></input></td>
-                                </tr>                                                                
+                                </tr>
+                                <tr>
+                                    <td>Title background color : </td>
+                                    <td><input readonly type="text" id="picker4" name="picker5" style="border-color:' . $picker5 . '" value="' . $picker5 . '"></input></td>
+                                </tr>
+                                <tr>
+                                    <td>Slogan background color : </td>
+                                    <td><input readonly type="text" id="picker4" name="picker6" style="border-color:' . $picker6 . '" value="' . $picker6 . '"></input></td>
+                                </tr>
+                                <tr>
+                                    <td>Field background color : </td>
+                                    <td><input readonly type="text" id="picker4" name="picker7" style="border-color:' . $picker7 . '" value="' . $picker7 . '"></input></td>
+                                </tr>
+                                <tr>
+                                    <td>Form background color : </td>
+                                    <td><input readonly type="text" id="picker4" name="picker8" style="border-color:' . $picker8 . '" value="' . $picker8 . '"></input></td>
+                                </tr>
                                 <tr>
                                     <td>Show dropdown option two</td>                                    
                                     <td><input ' . $checked . ' type="checkbox" id="dropdown-two" name="dropdown-two" size="40" value="1"></input></td>
+                                </tr> 
+                                <tr>
+                                    <td>Select style type</td>                                    
+                                    <td><input ' . $radio1_checked . ' type="radio" id="style-type" name="style-type" size="40" value="1">Style 1</input><br/>
+                                    <input ' . $radio2_checked . ' type="radio" id="style-type" name="style-type" size="40" value="2"></input>Style 2</td>
                                 </tr> 
                                 <tr>                                
                                     <td colspan="2"><input class="button-primary" type="submit" id="submit_form_settings" name="submit_form_settings"></input></td>
@@ -1387,15 +1502,19 @@ function callback_settings_info() {
             var picker2 = jQuery(\'#picker2\').val();
             var picker3 = jQuery(\'#picker3\').val();
             var picker4 = jQuery(\'#picker4\').val();
+            var picker5 = jQuery(\'#picker5\').val();
+            var picker6 = jQuery(\'#picker6\').val();
+            var picker7 = jQuery(\'#picker7\').val();
+            var picker8 = jQuery(\'#picker8\').val();
             var call_back_admin_email = jQuery(\'#call_back_admin_email\').val();
-            if (picker1 == \'\' || picker2 == \'\' || picker3 == \'\' || picker4 == \'\' || call_back_admin_email == \'\') {
+            if (picker1 == \'\' || picker2 == \'\' || picker3 == \'\' || picker4 == \'\' || picker5 == \'\' || picker6 == \'\' || picker7 == \'\' || picker8 == \'\' || call_back_admin_email == \'\') {
                 alert(\'Please fill all the required fields\');
                 return false;
             }
             return true;
         }
         jQuery(document).ready(function () {
-            jQuery(\'#picker1,#picker2,#picker3,#picker4\').colpick({
+            jQuery(\'#picker1,#picker2,#picker3,#picker4,#picker5,#picker6,#picker7,#picker8\').colpick({
                 layout: \'hex\',
                 submit: 0,
                 color: \'3289c7\',
@@ -1411,6 +1530,6 @@ function callback_settings_info() {
             });
         });
     </script>';
-    echo $output;
-}
-?>
+        echo $output;
+    }
+    ?>

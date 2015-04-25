@@ -1,6 +1,5 @@
 /*.wpgcallbackform { background:url(purple-callmebackimg.png) no-repeat; width:228px; padding:25px 15px 15px 15px;}*/
 .wpgcallmeback {width: 100%}
-.wpgcallbackform {width:100%;padding:25px 15px 15px 15px;}
 
 .wpgcallbackform .wpgtitle { color:#FFF; font-size:18px; font-weight:bold; display:block; line-height:18px;}
 
@@ -24,11 +23,37 @@
 
 .wpgcallbackform .wpglinesinfo { font-size:12px; color:#FFF; line-height:15px; padding-top:10px;}
 
-.wpgctop{
-    border-radius: 5px 5px 0px 0px;
-    padding: 15px;
+@font-face {
+    font-family: 'bebas_neueregular';
+    src: url('bebases/BebasNeue.eot');
+    src: url('bebases/BebasNeue.eot?#iefix') format('embedded-opentype'),
+         url('bebases/BebasNeue.woff2') format('woff2'),
+         url('bebases/BebasNeue.woff') format('woff'),
+         url('bebases/BebasNeue.ttf') format('truetype'),
+         url('bebases/BebasNeue.svg#bebas_neueregular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+
 }
-.wpgcbottom{
-    border-radius: 0px 0px 5px 5px;
-    padding: 15px;
+
+#techs-form .wpgtitle > p {
+    font-family: arial;
+    font-size: 14px;
+    font-weight: normal;
+    letter-spacing: 0;
+    margin-bottom: 0;
+}
+.wpgcallbackform #techs-form .techs-btn.callmeback {
+    background: url("images/call-me-btn.png") no-repeat scroll 0 0 rgba(0, 0, 0, 0);
+    display: block;
+    float: none;
+    height: 66px;
+    margin: 10px auto;
+    width: 200px;
+}
+.wpgcallbackform .wpgcbottom .wpglinesinfo {
+    color: #000;
+    font-size: 14px;
+    line-height: 20px;
+    padding: 10px;
 }
