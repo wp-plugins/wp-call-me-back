@@ -5,7 +5,7 @@ ob_start();
  * Plugin Name: Call me back widget
  * Plugin URI: http://pigeonhut.com
  * Description: Request call me back widget by PigeonHUT
- * Version: 3.0
+ * Version: 3.1
  * Author: Jody Nesbitt (WebPlugins)
  * Author URI: http://webplugins.co.uk
  *
@@ -985,6 +985,30 @@ class wpgcallmeback_Widget extends WP_Widget {
         $get_option_details = unserialize(get_option('rcb_settings_options'));
         $get_recaptcha_details = unserialize(get_option('rcb_recaptcha_options'));
         $get_color_picker = unserialize(get_option('rcb_settings_options_picker'));
+        if(empty($get_color_picker['picker1']) || $get_color_picker['picker1']==''){
+            $get_color_picker['picker1']='#2f8fd4';
+        }
+        if(empty($get_color_picker['picker2']) || $get_color_picker['picker2']==''){
+            $get_color_picker['picker2']='#702855';
+        }
+        if(empty($get_color_picker['picker3']) || $get_color_picker['picker3']==''){
+            $get_color_picker['picker3']='#7dbce8';
+        }
+        if(empty($get_color_picker['picker4']) || $get_color_picker['picker4']==''){
+            $get_color_picker['picker4']='#d0d7db';
+        }
+        if(empty($get_color_picker['picker5']) || $get_color_picker['picker5']==''){
+            $get_color_picker['picker5']='#eb0c22';
+        }
+        if(empty($get_color_picker['picker6']) || $get_color_picker['picker6']==''){
+            $get_color_picker['picker6']='#7dbce8';
+        }
+        if(empty($get_color_picker['picker7']) || $get_color_picker['picker7']==''){
+            $get_color_picker['picker7']='#a2a7ab';
+        }
+        if(empty($get_color_picker['picker8']) || $get_color_picker['picker8']==''){
+            $get_color_picker['picker8']='#d0d7db';
+        }
 
         extract($args);
         /* Our variables from the widget settings. */
@@ -1174,29 +1198,39 @@ class wpgcallmeback_Widget extends WP_Widget {
                     <script type="text/javascript"
                             src="https://www.google.com/recaptcha/api.js?hl=<?php echo $lang; ?>">
                     </script>
-                    <?php if ($formId == 'techs-form') { ?>
+                    <?php
+                    if ($formId == 'techs-form') {
+                        $leftsideStyle = 'style="width:45%; margin-right:8px; float:left; padding:0 15px;"';
+                        $rightsideStyle = 'style="width:45%; margin-left:5px; float:left; padding:0 15px;"';
+                        $captchaStyle = 'style="width:100%; padding:0 15px;"';
+                        ?>
                         <div id="<?php echo $formId; ?>" class="wpgctop">
                             <div class="wpgtitle"><?php echo $title; ?><p style="text-align:right"><?php echo $wpgslogan; ?></p></div>
-                        <?php } else { ?>
+                        <?php
+                        } else {
+                            $leftsideStyle = '';
+                            $rightsideStyle = '';
+                            $captchaStyle = '';
+                            ?>
                             <div id="<?php echo $formId; ?>" class="wpgctop" style="background-color: <?php echo $get_color_picker['picker1']; ?>;">
                                 <div class="wpgtitle"><?php echo $title; ?></div>
                                 <div class="wpgslogan"><?php echo $wpgslogan; ?></div>
-                            <?php } ?>                                            
+                <?php } ?>                                            
                             <div class="wpginfo"><?php echo $wpginfo; ?></div>
                             <div class="wpgform"><form action="#" method="post" enctype="application/x-www-form-urlencoded" name="callbackwidget" onsubmit="return validate();">
-                                    <input name="rname" type="text" id="rname" value="Name"  onclick="this.value = '';" onblur="if (this.value == '') {
+                                    <input <?php echo $leftsideStyle; ?> name="rname" type="text" id="rname" value="Name"  onclick="this.value = '';" onblur="if (this.value == '') {
                                                                 this.value = 'Name'
                                                             }" size="17" />
-                                    <input name="rnumber" id="rnumber" type="text" value="Number"  onclick="this.value = '';"  onblur="if (this.value == '') {
+                                    <input <?php echo $rightsideStyle; ?> name="rnumber" id="rnumber" type="text" value="Number"  onclick="this.value = '';"  onblur="if (this.value == '') {
                                                                 this.value = 'Number'
                                                             }"  size="17" />
-                                    <input name="remail" id="remail" type="text" value="Email"  onclick="this.value = '';"  onblur="if (this.value == '') {
+                                    <input <?php echo $leftsideStyle; ?>  name="remail" id="remail" type="text" value="Email"  onclick="this.value = '';"  onblur="if (this.value == '') {
                                                                 this.value = 'Email'
                                                             }"  size="17" />
-                                    <input name="postcode" id="postcode" type="text" value="Postcode"  onclick="this.value = '';"  onblur="if (this.value == '') {
+                                    <input <?php echo $rightsideStyle; ?> name="postcode" id="postcode" type="text" value="Postcode"  onclick="this.value = '';"  onblur="if (this.value == '') {
                                                                 this.value = 'Postcode'
                                                             }"  size="17" />
-                                    <select class="wpgselect" name="rtime" id="rtime" size="1">                                    
+                                    <select <?php echo $captchaStyle; ?> class="wpgselect" name="rtime" id="rtime" size="1">                                    
                                         <?php
                                         global $wpdb;
                                         $getAllBestTimes = $wpdb->get_results('SELECT best_time FROM  ' . $wpdb->prefix . 'call_back_best_time');
@@ -1205,7 +1239,7 @@ class wpgcallmeback_Widget extends WP_Widget {
                                         }
                                         ?>                                                                       
                                     </select>
-                                    <?php if ($get_color_picker['dropdown-two'] == 1) { ?>
+                                        <?php if ($get_color_picker['dropdown-two'] == 1) { ?>
                                         <select class="wpgselect" id="optiontwo" name="optiontwo" size="1">                                    
                                             <?php
                                             global $wpdb;
@@ -1218,21 +1252,21 @@ class wpgcallmeback_Widget extends WP_Widget {
                                         <input name="message" id="message" type="text" value="Message"  onclick="this.value = '';"  onblur="if (this.value == '') {
                                                                         this.value = 'Message'
                                                                     }"  size="17" />
-                                           <?php } ?>
+                                    <?php } ?>
                                     <div class="g-recaptcha" style="width:100%; display: block;" data-theme="light" data-type="image" data-sitekey="<?php echo $get_recaptcha_details['site_key']; ?>"></div>                                                                                
                                     <?php if ($formId != 'techs-form') { ?>
                                         <input name="submit" type="submit" style="background-color: <?php echo $get_color_picker['picker3']; ?>" class="callmeback" value="Call me back" />
                                     <?php } else { ?>
                                         <input name="submit" type="submit" class="techs-btn callmeback" value="" />
-                                    <?php } ?>
+                <?php } ?>
                                 </form></div>
                         </div>
                         <div class="wpgcbottom" style="background-color: <?php echo $get_color_picker['picker2']; ?>">                            
-                            <?php if ($formId != 'techs-form') { ?>
+                <?php if ($formId != 'techs-form') { ?>
                                 <div class="wpgcallbut" style="background-color: <?php echo $get_color_picker['picker4']; ?>;"><?php echo $wpgcallbut; ?></div>
                                 <div class="wpgcallus"><?php echo $wpgcallus; ?></div>
                                 <div class="wpgphonenum"><?php echo $wpgphonenum; ?></div>
-                            <?php } ?>                                                           
+                <?php } ?>                                                           
                             <div class="wpglinesinfo"><?php echo $wpglinesinfo; ?></div>
                         </div>
                     </div>
@@ -1451,14 +1485,16 @@ class wpgcallmeback_Widget extends WP_Widget {
         $radio2_checked = '';
         if ($style_type == 1) {
             $radio1_checked = 'checked="checked"';
+            echo '<style>.show-style-one{visiblity:visible;}.show-style-two{display:none;}</style>';
         }
         if ($style_type == 2) {
             $radio1_checked = '';
             $radio2_checked = 'checked="checked"';
+            echo '<style>.show-style-two{visiblity:visible;}.show-style-one{display:none;}</style>';
         }
         $output = '<div style="background: none repeat scroll 0 0 #99ff99;display:block;padding: 10px;">Available Short codes: <i>{client name}, {number}, {dropdown1}, {email}, {postcode}, {option}, {message}, {bloginfo}</i></div></br>';
         $output .= '   <div class="info_class"> 
-                    <form id="callback_settings_options" method="post" action="' . get_admin_url() . 'admin-post.php" onsubmit="return validate();">  
+                    <form id="callback_settings_options" method="post" action="' . get_admin_url() . 'admin-post.php">  
                         <fieldset>
                             <input type=\'hidden\' name=\'action\' value=\'submit-callback-settings-options\' />
                             <table width="600px" cellpadding="0" cellspacing="0" class="form-table">
@@ -1466,31 +1502,31 @@ class wpgcallmeback_Widget extends WP_Widget {
                                     <td>Top background color : </td>
                                     <td><input readonly type="text" id="picker1" name="picker1" style="border-color:' . $picker1 . '" value="' . $picker1 . '"></input></td>
                                 </tr>
-                                <tr>
+                                <tr class="show-style-one">
                                     <td>Bottom background color : </td>
                                     <td><input readonly type="text" id="picker2" name="picker2" style="border-color:' . $picker2 . '" value="' . $picker2 . '"></input></td>
                                 </tr>
-                                <tr>
+                                <tr class="show-style-one">
                                     <td>Callback button background color : </td>
                                     <td><input readonly type="text" id="picker3" name="picker3" style="border-color:' . $picker3 . '" value="' . $picker3 . '"></input></td>
                                 </tr>
-                                <tr>
+                                <tr class="show-style-one">
                                     <td>Help button background color : </td>
                                     <td><input readonly type="text" id="picker4" name="picker4" style="border-color:' . $picker4 . '" value="' . $picker4 . '"></input></td>
                                 </tr>
-                                <tr>
+                                <tr class="show-style-two">
                                     <td>Title background color : </td>
                                     <td><input readonly type="text" id="picker4" name="picker5" style="border-color:' . $picker5 . '" value="' . $picker5 . '"></input></td>
                                 </tr>
-                                <tr>
+                                <tr class="show-style-two">
                                     <td>Slogan background color : </td>
                                     <td><input readonly type="text" id="picker4" name="picker6" style="border-color:' . $picker6 . '" value="' . $picker6 . '"></input></td>
                                 </tr>
-                                <tr>
+                                <tr class="show-style-two">
                                     <td>Field background color : </td>
                                     <td><input readonly type="text" id="picker4" name="picker7" style="border-color:' . $picker7 . '" value="' . $picker7 . '"></input></td>
                                 </tr>
-                                <tr>
+                                <tr class="show-style-two">
                                     <td>Form background color : </td>
                                     <td><input readonly type="text" id="picker4" name="picker8" style="border-color:' . $picker8 . '" value="' . $picker8 . '"></input></td>
                                 </tr>
@@ -1500,8 +1536,8 @@ class wpgcallmeback_Widget extends WP_Widget {
                                 </tr> 
                                 <tr>
                                     <td>Select style type</td>                                    
-                                    <td><input ' . $radio1_checked . ' type="radio" id="style-type" name="style-type" size="40" value="1">Style 1</input><br/>
-                                    <input ' . $radio2_checked . ' type="radio" id="style-type" name="style-type" size="40" value="2"></input>Style 2</td>
+                                    <td><input ' . $radio1_checked . ' type="radio" id="style-type-1" name="style-type" size="40" value="1">Style 1</input><br/>
+                                    <input ' . $radio2_checked . ' type="radio" id="style-type-2" name="style-type" size="40" value="2"></input>Style 2</td>
                                 </tr> 
                                 <tr>                                
                                     <td colspan="2"><input class="button-primary" type="submit" id="submit_form_settings" name="submit_form_settings"></input></td>
@@ -1540,6 +1576,20 @@ class wpgcallmeback_Widget extends WP_Widget {
                 }
             }).keyup(function () {
                 jQuery(this).colpickSetColor(this.value);
+            });
+            jQuery(\'#style-type-1\').click(function(){
+                var chekVar=jQuery(\'#style-type-1:checked\').val();
+                if(chekVar==\'1\'){
+                    jQuery(\'.show-style-one\').show();
+                    jQuery(\'.show-style-two\').hide();
+                }
+            });
+            jQuery(\'#style-type-2\').click(function(){
+                var chekVar=jQuery(\'#style-type-2:checked\').val();
+                if(chekVar==\'2\'){
+                    jQuery(\'.show-style-one\').hide();
+                    jQuery(\'.show-style-two\').show();
+                }
             });
         });
     </script>';
