@@ -5,7 +5,7 @@ ob_start();
  * Plugin Name: Call me back widget
  * Plugin URI: http://pigeonhut.com
  * Description: Request call me back widget by PigeonHUT
- * Version: 3.1
+ * Version: 3.2
  * Author: Jody Nesbitt (WebPlugins)
  * Author URI: http://webplugins.co.uk
  *
@@ -55,14 +55,18 @@ function initialize_table() {
             `dateCreated` timestamp NOT NULL,
             PRIMARY KEY (`id`))ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1;";
     $wpdb->query($sql);
-    $myColumn = $wpdb->get_row("SELECT * FROM " . $wpdb->prefix . "request_a_call_back");
-    if (!isset($myColumn->options)) {
+    $table_name = $wpdb->prefix . 'request_a_call_back';
+    $tableNameArray=array();
+    foreach ($wpdb->get_col("DESC " . $table_name, 0) as $column_name) {
+        $tableNameArray[]=$column_name;
+    }        
+    if (!in_array('options', $tableNameArray)) {
         $wpdb->query("ALTER TABLE " . $wpdb->prefix . "request_a_call_back ADD options varchar(255) DEFAULT NULL");
     }
-    if (!isset($myColumn->message)) {
+    if (!in_array('message', $tableNameArray)) {
         $wpdb->query("ALTER TABLE " . $wpdb->prefix . "request_a_call_back ADD message varchar(255) DEFAULT NULL");
     }
-    if (!isset($myColumn->postcode)) {
+    if (!in_array('postcode', $tableNameArray)) {
         $wpdb->query("ALTER TABLE " . $wpdb->prefix . "request_a_call_back ADD postcode varchar(255) DEFAULT NULL");
     }
     $sql = "CREATE TABLE IF NOT EXISTS `" . $wpdb->prefix . "call_back_best_time" . "` (
