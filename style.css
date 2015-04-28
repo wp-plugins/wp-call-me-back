@@ -1,7 +1,7 @@
 /*.wpgcallbackform { background:url(purple-callmebackimg.png) no-repeat; width:228px; padding:25px 15px 15px 15px;}*/
 .wpgcallmeback {width: 100%}
 
-.wpgcallbackform .wpgtitle { color:#FFF; font-size:18px; font-weight:bold; display:block; line-height:18px;}
+.wpgcallbackform .wpgtitle,.wpgcallbackform .wpgtitle p  { color:#FFF; font-size:18px; font-weight:bold; display:block; line-height:18px;}
 
 .wpgcallbackform .wpgslogan { color:#FFF; font-size:14px; font-weight:bold; display:block;  line-height:18px;}
 
