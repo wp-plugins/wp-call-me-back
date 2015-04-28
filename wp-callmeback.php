@@ -5,7 +5,7 @@ ob_start();
  * Plugin Name: Call me back widget
  * Plugin URI: http://pigeonhut.com
  * Description: Request call me back widget by PigeonHUT
- * Version: 3.2
+ * Version: 3.3
  * Author: Jody Nesbitt (WebPlugins)
  * Author URI: http://webplugins.co.uk
  *
@@ -1168,7 +1168,7 @@ class wpgcallmeback_Widget extends WP_Widget {
                     }
                     #techs-form .wpgform {
                         background: none repeat scroll 0 0 <?php echo $get_color_picker['picker8']; ?>;
-                        padding: 0 10px;
+                        padding: 0 5px;
                     }
                 </style>
                 <script>
@@ -1204,8 +1204,8 @@ class wpgcallmeback_Widget extends WP_Widget {
                     </script>
                     <?php
                     if ($formId == 'techs-form') {
-                        $leftsideStyle = 'style="width:45%; margin-right:8px; float:left; padding:0 15px;"';
-                        $rightsideStyle = 'style="width:45%; margin-left:5px; float:left; padding:0 15px;"';
+                        $leftsideStyle = 'style="width:45%; margin-right:5px; float:left; padding:0 5px;"';
+                        $rightsideStyle = 'style="width:45%; margin-left:0px; float:left; padding:0 5px;"';
                         $captchaStyle = 'style="width:100%; padding:0 15px;"';
                         ?>
                         <div id="<?php echo $formId; ?>" class="wpgctop">
